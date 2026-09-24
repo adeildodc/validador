@@ -1,195 +1,507 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Validador Pro</title>
-  <style>
-    /* Estilos base da interface */
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #0d1117;
-      color: #c9d1d9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
+<!-- ... existing code ... -->
+            <!-- Global Action Buttons -->
+            <div class="flex items-center gap-2">
+                <button 
+                    onclick="openFirebaseSetupModal()" 
+                    title="Como configurar e conectar seu próprio projeto do Firebase"
+                    class="px-3 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-lg shadow-indigo-500/10"
+                >
+                    <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                    <span>⚙️ Guia Firebase</span>
+                </button>
+                <button 
+                    onclick="openAddModal()" 
+                    title="Cadastrar novo produto no Firebase"
+                    class="px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-lg shadow-emerald-500/10"
+                >
+                    <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                    <span>+ Novo Produto</span>
+                </button>
+                <button 
+                    onclick="selectAllItems()" 
+                    title="Marcar todos os itens da plataforma ativa"
+                    class="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
+                >
+<!-- ... existing code ... -->
+    <!-- Firebase SDK Imports & Storage Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, addDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        window.initStorage = async function() {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'validador-pro-app';
+            
+            // 1. Carrega do localStorage local
+            window.loadValidationStateFromLocalStorage();
+
+            // 2. Se houver ambiente Firebase ativo, habilita sincronização em tempo real compartilhada
+            if (typeof __firebase_config !== 'undefined') {
+                try {
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    const app = initializeApp(firebaseConfig);
+                    const auth = getAuth(app);
+                    const db = getFirestore(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    
+                    window.firestoreDb = db;
+                    window.firestoreAppId = appId;
+                    window.docFunc = doc;
+                    window.setDocFunc = setDoc;
+                    window.addDocFunc = addDoc;
+                    window.collectionFunc = collection;
+
+                    // Escuta em tempo real o documento PÚBLICO para sincronizar entre todos os navegadores
+                    const publicDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'validationState', 'shared');
+                    
+                    onSnapshot(publicDocRef, (snap) => {
+                        if (snap.exists()) {
+                            const data = snap.data();
+                            if (Array.isArray(data.hotmart)) {
+                                validatedHotmart.clear();
+                                data.hotmart.forEach(num => validatedHotmart.add(num));
+                            }
+                            if (Array.isArray(data.greenn)) {
+                                validatedGreenn.clear();
+                                data.greenn.forEach(num => validatedGreenn.add(num));
+                            }
+                            // Salva também no localStorage para backup offline
+                            try {
+                                localStorage.setItem('validador_hotmart', JSON.stringify(Array.from(validatedHotmart)));
+                                localStorage.setItem('validador_greenn', JSON.stringify(Array.from(validatedGreenn)));
+                            } catch(e){}
+
+                            if (typeof updateProgressStats === 'function') updateProgressStats();
+                            if (typeof loadProduct === 'function' && typeof currentIndex !== 'undefined') loadProduct(currentIndex);
+                        }
+                    }, (err) => console.warn("Erro no listener em tempo real:", err));
+
+                } catch (err) {
+                    console.warn("Sincronização em nuvem opcional não disponível:", err);
+                }
+            }
+        };
+    </script>
+
+    <script>
+        // Funções para Controle do Modal de Guia e Configuração do Firebase
+        function openFirebaseSetupModal() {
+            const modal = document.getElementById('firebaseSetupModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeFirebaseSetupModal() {
+            const modal = document.getElementById('firebaseSetupModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function switchFbTab(tab) {
+            const btnStep1 = document.getElementById('fbBtnStep1');
+            const btnStep2 = document.getElementById('fbBtnStep2');
+            const btnStep3 = document.getElementById('fbBtnStep3');
+            const btnStep4 = document.getElementById('fbBtnStep4');
+
+            const secStep1 = document.getElementById('fbSecStep1');
+            const secStep2 = document.getElementById('fbSecStep2');
+            const secStep3 = document.getElementById('fbSecStep3');
+            const secStep4 = document.getElementById('fbSecStep4');
+
+            [btnStep1, btnStep2, btnStep3, btnStep4].forEach(b => {
+                b.className = "px-3 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white transition";
+            });
+
+            [secStep1, secStep2, secStep3, secStep4].forEach(s => s.classList.add('hidden'));
+
+            if (tab === 1) {
+                btnStep1.className = "px-3 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
+                secStep1.classList.remove('hidden');
+            } else if (tab === 2) {
+                btnStep2.className = "px-3 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
+                secStep2.classList.remove('hidden');
+            } else if (tab === 3) {
+                btnStep3.className = "px-3 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
+                secStep3.classList.remove('hidden');
+            } else if (tab === 4) {
+                btnStep4.className = "px-3 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
+                secStep4.classList.remove('hidden');
+            }
+        }
+
+        // Funções para Controle do Modal de Cadastro no Banco de Dados
+        function openAddModal() {
+            const modal = document.getElementById('addProductModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            const modal = document.getElementById('addProductModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function switchModalTab(tab) {
+            const tabForm = document.getElementById('tabModalForm');
+            const tabCode = document.getElementById('tabModalCode');
+            const formSection = document.getElementById('modalFormSection');
+            const codeSection = document.getElementById('modalCodeSection');
+
+            if (tab === 'form') {
+                tabForm.className = "px-4 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
+                tabCode.className = "px-4 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white";
+                formSection.classList.remove('hidden');
+                codeSection.classList.add('hidden');
+            } else {
+                tabCode.className = "px-4 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
+                tabForm.className = "px-4 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white";
+                codeSection.classList.remove('hidden');
+                formSection.classList.add('hidden');
+            }
+        }
+
+        async function saveProductToFirebase(event) {
+            event.preventDefault();
+            
+            const platform = document.getElementById('newProdPlatform').value;
+            const name = document.getElementById('newProdName').value.trim();
+            const codeOrVal = document.getElementById('newProdCodeOrVal').value.trim();
+            const status = document.getElementById('newProdStatus').value;
+
+            if (!name || !codeOrVal) {
+                showToast("Preencha todos os campos obrigatórios!", "alert-circle", "rose");
+                return;
+            }
+
+            const targetDataset = platform === 'hotmart' ? hotmartProducts : greennProducts;
+            const newNum = targetDataset.length + 1;
+
+            const newProduct = {
+                num: newNum,
+                name: name,
+                status: status
+            };
+
+            if (platform === 'hotmart') {
+                newProduct.id = codeOrVal;
+            } else {
+                newProduct.valor = codeOrVal.startsWith('R$') ? codeOrVal : `R$ ${codeOrVal}`;
+            }
+
+            // Adiciona localmente ao array correspondente
+            targetDataset.push(newProduct);
+
+            // Grava no Firebase Firestore se a conexão estiver ativa
+            if (window.firestoreDb && window.addDocFunc && window.collectionFunc) {
+                try {
+                    const appId = window.firestoreAppId || 'validador-pro-app';
+                    // Regra de caminho obrigatória: /artifacts/{appId}/public/data/{collectionName}
+                    const collectionRef = window.collectionFunc(window.firestoreDb, 'artifacts', appId, 'public', 'data', 'produtos');
+                    
+                    await window.addDocFunc(collectionRef, {
+                        ...newProduct,
+                        platform: platform,
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    showToast(`Produto cadastrado com sucesso no Firebase!`, "database", "emerald");
+                } catch (err) {
+                    console.error("Erro ao gravar no Firebase:", err);
+                    showToast("Salvo localmente (Erro ao conectar com Firebase)", "alert-triangle", "amber");
+                }
+            } else {
+                showToast(`Produto #${newNum} adicionado à lista local!`, "check-circle", "emerald");
+            }
+
+            // Atualiza interface da plataforma ativa
+            if (currentPlatform === platform) {
+                loadProduct(targetDataset.length - 1);
+                updateProgressStats();
+            } else {
+                switchPlatform(platform);
+                loadProduct(targetDataset.length - 1);
+            }
+
+            // Limpa o formulário e fecha modal
+            document.getElementById('newProdName').value = '';
+            document.getElementById('newProdCodeOrVal').value = '';
+            closeAddModal();
+        }
+
+        // ... existing code ...
+    <!-- Footer -->
+    <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-800/50">
+        Validador Pro &copy; 2026 &bull; Hotmart & Greenn Catalog Management
+    </footer>
+
+    <!-- Modal: Guia Completo e Configuração do Firebase -->
+    <div id="firebaseSetupModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
+        <div class="glass-card w-full max-w-3xl rounded-3xl p-6 border border-slate-700/80 shadow-2xl relative my-auto">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
+                        <i data-lucide="flame" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-extrabold text-white">Como Usar seu Próprio Firebase no Projeto</h2>
+                        <p class="text-xs text-slate-400">Guia passo a passo para conectar o banco de dados e publicar no seu site</p>
+                    </div>
+                </div>
+                <button onclick="closeFirebaseSetupModal()" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Tab Buttons -->
+            <div class="flex flex-wrap gap-2 mb-5">
+                <button id="fbBtnStep1" onclick="switchFbTab(1)" class="px-3 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow">
+                    1. Criar Projeto
+                </button>
+                <button id="fbBtnStep2" onclick="switchFbTab(2)" class="px-3 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white">
+                    2. Firestore & Auth
+                </button>
+                <button id="fbBtnStep3" onclick="switchFbTab(3)" class="px-3 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white">
+                    3. Regras de Acesso
+                </button>
+                <button id="fbBtnStep4" onclick="switchFbTab(4)" class="px-3 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white">
+                    4. Inserir no Código
+                </button>
+            </div>
+
+            <!-- Step 1: Criar Projeto no Console -->
+            <div id="fbSecStep1" class="space-y-4">
+                <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+                    <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-xs">1</span>
+                        Acessar o Firebase Console
+                    </h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        O Firebase é um serviço gratuito do Google. Para criar seu banco de dados:
+                    </p>
+                    <ol class="list-decimal list-inside text-xs text-slate-300 space-y-2">
+                        <li>Acesse o site oficial: <a href="https://console.firebase.google.com" target="_blank" class="text-indigo-400 underline font-bold hover:text-indigo-300">console.firebase.google.com</a></li>
+                        <li>Faça login com sua conta do Google.</li>
+                        <li>Clique no botão <strong>"Adicionar projeto"</strong> (ou "Add project").</li>
+                        <li>Dê um nome para o seu projeto (ex: <code class="bg-slate-950 px-1.5 py-0.5 rounded text-amber-300">validador-produtos</code>) e clique em Continuar até concluir a criação.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Step 2: Firestore & Auth -->
+            <div id="fbSecStep2" class="hidden space-y-4">
+                <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+                    <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-xs">2</span>
+                        Ativar Firestore Database & Autenticação Anônima
+                    </h3>
+                    
+                    <div class="space-y-2 text-xs text-slate-300">
+                        <div class="font-bold text-indigo-300">A) Ativar o Banco de Dados (Firestore):</div>
+                        <p class="pl-3 border-l-2 border-indigo-500/40">
+                            No menu lateral esquerdo do Firebase Console, clique em <strong>Build</strong> &rarr; <strong>Firestore Database</strong> &rarr; clique em <strong>"Criar banco de dados"</strong>. Escolha a localização (ex: <i>nam5 - us-central</i>) e selecione <strong>Modo de teste</strong>.
+                        </p>
+
+                        <div class="font-bold text-indigo-300 pt-2">B) Ativar Autenticação Anônima:</div>
+                        <p class="pl-3 border-l-2 border-indigo-500/40">
+                            No menu esquerdo, vá em <strong>Build</strong> &rarr; <strong>Authentication</strong> &rarr; clique em <strong>Primeiros passos</strong> &rarr; selecione <strong>Anônimo</strong> e clique em <strong>Ativar</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Regras de Acesso -->
+            <div id="fbSecStep3" class="hidden space-y-4">
+                <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+                    <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-xs">3</span>
+                        Configurar as Regras de Segurança do Firestore
+                    </h3>
+                    <p class="text-xs text-slate-300">
+                        Para permitir que o seu aplicativo leia e grave dados sem bloqueios de permissão, cole estas regras na aba <strong>Firestore Database &rarr; Regras (Rules)</strong> no Firebase Console:
+                    </p>
+
+                    <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 font-mono text-xs overflow-x-auto text-emerald-400">
+<pre><code>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Permite leitura e escrita pública nas coleções da aplicação
+    match /artifacts/{appId}/public/data/{document=**} {
+      allow read, write: if true;
     }
+  }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
 
-    .card {
-      background-color: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 8px;
-      padding: 24px;
-      width: 100%;
-      max-width: 480px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    }
+            <!-- Step 4: Copiar Credenciais e Usar no Código -->
+            <div id="fbSecStep4" class="hidden space-y-4">
+                <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+                    <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-xs">4</span>
+                        Como Inserir as Credenciais (`firebaseConfig`) no Seu HTML
+                    </h3>
+                    <p class="text-xs text-slate-300">
+                        Vá nas <strong>Configurações do Projeto</strong> (ícone de engrenagem ⚙️) &rarr; role até <i>"Seus aplicativos"</i> &rarr; crie um App Web (&lt;/&gt;) e copie o objeto <code class="text-indigo-300">firebaseConfig</code>.
+                    </p>
 
-    .switch-container {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid #30363d;
-    }
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto">
+<pre><code>&lt;script type="module"&gt;
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-    /* Switch Customizado */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 26px;
-    }
+  // Suas credenciais do Firebase Console:
+  const firebaseConfig = {
+    apiKey: "AIzaSy...",
+    authDomain: "seu-projeto.firebaseapp.com",
+    projectId: "seu-projeto-id",
+    storageBucket: "seu-projeto.appspot.com",
+    messagingSenderId: "1234567890",
+    appId: "1:1234567890:web:abcdef..."
+  };
 
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
 
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #374151;
-      transition: .3s;
-      border-radius: 34px;
-    }
+  // Autentica anonimamente e conecta ao banco
+  await signInAnonymously(auth);
+&lt;/script&gt;</code></pre>
+                    </div>
+                </div>
+            </div>
 
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 4px;
-      bottom: 4px;
-      background-color: white;
-      transition: .3s;
-      border-radius: 50%;
-    }
+            <!-- Modal Bottom Actions -->
+            <div class="pt-4 border-t border-slate-800 flex justify-end">
+                <button onclick="closeFirebaseSetupModal()" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg">
+                    Entendi! Fechar Guia
+                </button>
+            </div>
 
-    input:checked + .slider {
-      background-color: #10b981;
-      box-shadow: 0 0 10px #10b981;
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(24px);
-    }
-
-    .label-text {
-      font-size: 15px;
-      color: #e5e7eb;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="card">
-    <h2>Validador Pro</h2>
-    <p id="product-title">Carregando produto...</p>
-
-    <!-- Switch de Validação -->
-    <div class="switch-container">
-      <label class="switch">
-        <input type="checkbox" id="validation-toggle" onchange="toggleCurrentItemValidation()">
-        <span class="slider"></span>
-      </label>
-      <span class="label-text">Validar item processado</span>
+        </div>
     </div>
-  </div>
 
-  <script>
-    // Estruturas de dados globais
-    window.validatedHotmart = new Set();
-    window.validatedGreenn = new Set();
-    window.currentIndex = 0;
-    window.currentPlatform = "hotmart"; // ou 'greenn'
+    <!-- Modal: Cadastrar no Banco de Dados Firebase & Tutorial -->
+    <div id="addProductModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="glass-card w-full max-w-2xl rounded-3xl p-6 border border-slate-700/80 shadow-2xl relative">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center">
+                        <i data-lucide="database" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-extrabold text-white">Cadastrar em Banco de Dados (Firebase)</h2>
+                        <p class="text-xs text-slate-400">Grave dados em tempo real ou aprenda o código</p>
+                    </div>
+                </div>
+                <button onclick="closeAddModal()" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
 
-    function updateProgressStats() {
-      // Atualizar contadores na tela se necessário
-    }
+            <!-- Modal Tabs -->
+            <div class="flex gap-2 mb-6">
+                <button id="tabModalForm" onclick="switchModalTab('form')" class="px-4 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow">
+                     Formuário de Cadastro
+                </button>
+                <button id="tabModalCode" onclick="switchModalTab('code')" class="px-4 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white">
+                    <i data-lucide="code" class="w-3.5 h-3.5 inline mr-1"></i> Como Funciona no Código
+                </button>
+            </div>
 
-    function loadProduct(index) {
-      const toggle = document.getElementById("validation-toggle");
-      if (!toggle) return;
+            <!-- Tab 1: Form Section -->
+            <div id="modalFormSection">
+                <form onsubmit="saveProductToFirebase(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Plataforma</label>
+                            <select id="newProdPlatform" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-200 focus:outline-none">
+                                <option value="hotmart" class="bg-slate-900 text-slate-200">Hotmart</option>
+                                <option value="greenn" class="bg-slate-900 text-slate-200">Greenn</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Status do Produto</label>
+                            <select id="newProdStatus" class="w-full glass-input rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-200 focus:outline-none">
+                                <option value="Vendas ativas" class="bg-slate-900 text-slate-200">Vendas ativas</option>
+                                <option value="Em rascunho" class="bg-slate-900 text-slate-200">Em rascunho</option>
+                            </select>
+                        </div>
+                    </div>
 
-      const currentSet = window.currentPlatform === "hotmart" ? window.validatedHotmart : window.validatedGreenn;
-      toggle.checked = currentSet.has(index);
-    }
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Nome do Produto *</label>
+                        <input type="text" id="newProdName" placeholder="Ex: Curso Avançado de Eletrônica" required class="w-full glass-input rounded-xl px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none">
+                    </div>
 
-    function toggleCurrentItemValidation() {
-      const toggle = document.getElementById("validation-toggle");
-      const currentSet = window.currentPlatform === "hotmart" ? window.validatedHotmart : window.validatedGreenn;
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">ID (Hotmart) ou Valor em R$ (Greenn) *</label>
+                        <input type="text" id="newProdCodeOrVal" placeholder="Ex: 8499999 ou R$ 497,00" required class="w-full glass-input rounded-xl px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none">
+                    </div>
 
-      if (toggle.checked) {
-        currentSet.add(window.currentIndex);
-      } else {
-        currentSet.delete(window.currentIndex);
-      }
+                    <div class="pt-2 flex justify-end gap-3">
+                        <button type="button" onclick="closeAddModal()" class="px-4 py-2.5 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-semibold">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="glow-button bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-600/30">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            <span>Salvar no Firebase</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
 
-      // Salva o novo estado diretamente na nuvem (Firebase)
-      if (typeof window.saveValidationState === "function") {
-        window.saveValidationState();
-      }
-    }
-  </script>
+            <!-- Tab 2: Tutorial Code Section -->
+            <div id="modalCodeSection" class="hidden space-y-4">
+                <div class="text-xs text-slate-300 leading-relaxed">
+                    Para registrar ou salvar dados no banco de dados <strong>Firebase Firestore</strong>, utilizamos duas funções principais da biblioteca SDK JS:
+                </div>
 
-  <!-- MÓDULO FIREBASE EM TEMPO REAL -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+                <div class="space-y-3">
+                    <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 text-xs font-mono">
+                        <div class="text-emerald-400 font-bold mb-1">// 1. addDoc(): Cria um novo documento com ID gerado automaticamente</div>
+                        <pre class="text-slate-300 overflow-x-auto"><code>import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // Credenciais do Projeto
-    const firebaseConfig = {
-      apiKey: "AIzaSyCQ4Zn0c2z4ogdSwBD364cvmm3NSkoBC6I",
-      authDomain: "joice-ac6ed.firebaseapp.com",
-      projectId: "joice-ac6ed",
-      storageBucket: "joice-ac6ed.firebasestorage.app",
-      messagingSenderId: "956744607142",
-      appId: "1:956744607142:web:865c5bf044ab91f1429b67",
-      measurementId: "G-5M2PDJR9KB"
-    };
+const db = getFirestore();
+const colRef = collection(db, "artifacts", appId, "public", "data", "produtos");
 
-    // Inicialização do Banco de Dados
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const docRef = doc(db, "validador_pro", "status_global");
+await addDoc(colRef, {
+  name: "Curso de Eletrônica",
+  valor: "R$ 297,00",
+  createdAt: new Date().toISOString()
+});</code></pre>
+                    </div>
 
-    // 1. Escuta mudanças em tempo real na nuvem
-    onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        
-        if (data.hotmart) {
-          window.validatedHotmart.clear();
-          data.hotmart.forEach(id => window.validatedHotmart.add(id));
-        }
-        if (data.greenn) {
-          window.validatedGreenn.clear();
-          data.greenn.forEach(id => window.validatedGreenn.add(id));
-        }
+                    <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 text-xs font-mono">
+                        <div class="text-indigo-400 font-bold mb-1">// 2. setDoc(): Salva com um ID customizado ou atualiza dados existentes</div>
+                        <pre class="text-slate-300 overflow-x-auto"><code>import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        if (typeof updateProgressStats === "function") updateProgressStats();
-        if (typeof loadProduct === "function") loadProduct(window.currentIndex);
-      }
-    });
+const docRef = doc(db, "artifacts", appId, "public", "data", "produtos", "id_123");
 
-    // 2. Salva a alteração no Firestore ao mudar o switch
-    window.saveValidationState = function() {
-      setDoc(docRef, {
-        hotmart: Array.from(window.validatedHotmart),
-        greenn: Array.from(window.validatedGreenn),
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
-    };
-  </script>
+await setDoc(docRef, {
+  name: "Curso de Eletrônica",
+  valor: "R$ 297,00"
+}, { merge: true });</code></pre>
+                    </div>
+                </div>
 
-</body>
-</html>
+                <div class="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs text-indigo-300 flex items-start gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"></i>
+                    <div>
+                        <strong>Regra Importante do Firestore:</strong> Lembre-se de sempre inicializar a autenticação (<code>signInAnonymously</code>) antes de executar operações de leitura e escrita.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Firebase SDK Imports & Storage Logic -->
+<!-- ... existing code ... -->
