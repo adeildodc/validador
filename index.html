@@ -218,17 +218,27 @@
                 </div>
 
                 <!-- Extra Info Display (ID for Hotmart or Valor for Greenn) -->
-                <div id="extraInfoContainer" class="flex items-center gap-2">
-                    <div id="displayStatus" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>Vendas ativas
-                    </div>
-                    <div class="text-xs text-slate-400 bg-slate-900/60 px-3 py-1.5 rounded-xl border border-slate-800">
-                        <span id="extraInfoLabel">ID:</span> <span id="displayExtraValue" class="font-mono font-bold text-slate-200">8433965</span>
-                    </div>
+            <div id="extraInfoContainer" class="flex items-center gap-2">
+                <div id="displayStatus" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>Vendas ativas
+                </div>
+                <div class="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-900/60 px-3 py-1.5 rounded-xl border border-slate-800">
+                    <span id="extraInfoLabel">ID:</span> 
+                    <span id="displayExtraValue" class="font-mono font-bold text-slate-200">8433965</span>
+                    <button 
+                        id="copyExtraBtn"
+                        onclick="copyExtraToClipboard()" 
+                        title="Copiar Código / Valor"
+                        class="ml-1 px-2 py-0.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 text-[11px] font-semibold flex items-center gap-1 transition active:scale-95"
+                    >
+                        <i data-lucide="copy" class="w-3 h-3"></i>
+                        <span id="copyExtraBtnText">Copiar</span>
+                    </button>
                 </div>
             </div>
+        </div>
 
-            <!-- Copiable Product Name Box -->
+        <!-- Copiable Product Name Box -->
             <div class="mb-6 relative">
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                     Nome do Produto (Campo Copiável)
@@ -321,6 +331,56 @@
     <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-800/50">
         Validador Pro &copy; 2026 &bull; Hotmart & Greenn Catalog Management
     </footer>
+
+    <!-- Firebase SDK Imports & Storage Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        window.initStorage = async function() {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'validador-pro-app';
+            
+            // 1. Carrega primeiro do localStorage (funciona instantaneamente no GitHub Pages)
+            window.loadValidationStateFromLocalStorage();
+
+            // 2. Se houver credenciais do Firebase no ambiente, sincroniza também em nuvem
+            if (typeof __firebase_config !== 'undefined') {
+                try {
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    const app = initializeApp(firebaseConfig);
+                    const auth = getAuth(app);
+                    const db = getFirestore(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    
+                    const userId = auth.currentUser?.uid || 'anonymous-user';
+                    window.firestoreDb = db;
+                    window.firestoreUserId = userId;
+                    window.firestoreAppId = appId;
+                    window.docFunc = doc;
+                    window.setDocFunc = setDoc;
+
+                    // Carrega do banco de dados em nuvem
+                    const docRef = doc(db, 'artifacts', appId, 'users', userId, 'settings', 'validatedProducts');
+                    const snap = await getDoc(docRef);
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        if (Array.isArray(data.hotmart)) data.hotmart.forEach(num => validatedHotmart.add(num));
+                        if (Array.isArray(data.greenn)) data.greenn.forEach(num => validatedGreenn.add(num));
+                        if (typeof updateProgressStats === 'function') updateProgressStats();
+                        if (typeof loadProduct === 'function' && typeof currentIndex !== 'undefined') loadProduct(currentIndex);
+                    }
+                } catch (err) {
+                    console.warn("Sincronização em nuvem opcional não disponível:", err);
+                }
+            }
+        };
+    </script>
 
     <script>
         // Dataset Hotmart (68 Produtos)
@@ -464,6 +524,47 @@
         const validatedHotmart = new Set();
         const validatedGreenn = new Set();
 
+        function saveValidationState() {
+            const hotmartArr = Array.from(validatedHotmart);
+            const greennArr = Array.from(validatedGreenn);
+
+            // Salva localmente (Garante persistência no GitHub Pages)
+            try {
+                localStorage.setItem('validador_hotmart', JSON.stringify(hotmartArr));
+                localStorage.setItem('validador_greenn', JSON.stringify(greennArr));
+            } catch (e) {
+                console.warn('Erro ao salvar no navegador:', e);
+            }
+
+            // Salva na nuvem se disponível
+            if (window.firestoreDb && window.firestoreUserId && window.setDocFunc) {
+                const docRef = window.docFunc(window.firestoreDb, 'artifacts', window.firestoreAppId, 'users', window.firestoreUserId, 'settings', 'validatedProducts');
+                window.setDocFunc(docRef, {
+                    hotmart: hotmartArr,
+                    greenn: greennArr,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true }).catch(err => console.error("Erro ao salvar no Firestore:", err));
+            }
+        }
+
+        function loadValidationStateFromLocalStorage() {
+            try {
+                const h = localStorage.getItem('validador_hotmart');
+                if (h) {
+                    const parsed = JSON.parse(h);
+                    if (Array.isArray(parsed)) parsed.forEach(num => validatedHotmart.add(num));
+                }
+                const g = localStorage.getItem('validador_greenn');
+                if (g) {
+                    const parsed = JSON.parse(g);
+                    if (Array.isArray(parsed)) parsed.forEach(num => validatedGreenn.add(num));
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar do navegador:', e);
+            }
+        }
+        window.loadValidationStateFromLocalStorage = loadValidationStateFromLocalStorage;
+
         function getActiveDataset() {
             return currentPlatform === 'hotmart' ? hotmartProducts : greennProducts;
         }
@@ -589,6 +690,34 @@
             if (copyBtn) {
                 copyBtn.className = 'absolute right-3 bottom-3 glow-button bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 transition shadow-lg shadow-indigo-600/30 active:scale-95';
             }
+            const copyExtraBtnText = document.getElementById('copyExtraBtnText');
+            if (copyExtraBtnText) copyExtraBtnText.textContent = 'Copiar';
+        }
+
+        function copyExtraToClipboard() {
+            const extraVal = document.getElementById('displayExtraValue')?.textContent || '';
+            const labelText = document.getElementById('extraInfoLabel')?.textContent || 'Código';
+            const copyExtraBtnText = document.getElementById('copyExtraBtnText');
+
+            if (!extraVal) return;
+
+            const tempInput = document.createElement('textarea');
+            tempInput.value = extraVal;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+
+            try {
+                document.execCommand('copy');
+                if (copyExtraBtnText) copyExtraBtnText.textContent = 'Copiado!';
+                showToast(`${labelText} (${extraVal}) copiado com sucesso!`, "check-circle", "emerald");
+                setTimeout(() => {
+                    if (copyExtraBtnText) copyExtraBtnText.textContent = 'Copiar';
+                }, 2000);
+            } catch (err) {
+                showToast('Erro ao copiar código', 'alert-circle', 'rose');
+            } finally {
+                document.body.removeChild(tempInput);
+            }
         }
 
         function toggleValidationStatus() {
@@ -603,6 +732,7 @@
                 validatedSet.delete(currentNum);
             }
 
+            saveValidationState();
             updateProgressStats();
         }
 
@@ -613,6 +743,7 @@
             
             const checkbox = document.getElementById('validationCheckbox');
             if (checkbox) checkbox.checked = true;
+            saveValidationState();
             updateProgressStats();
             showToast(`Todos os ${dataset.length} produtos de ${currentPlatform.toUpperCase()} marcados!`, "check-circle", "emerald");
         }
@@ -622,6 +753,7 @@
             validatedSet.clear();
             const checkbox = document.getElementById('validationCheckbox');
             if (checkbox) checkbox.checked = false;
+            saveValidationState();
             updateProgressStats();
             showToast(`Todos os produtos de ${currentPlatform.toUpperCase()} desmarcados!`, "rotate-ccw", "rose");
         }
@@ -785,6 +917,11 @@
         // Initialize App
         window.onload = function() {
             if (window.lucide) window.lucide.createIcons();
+            if (window.initStorage) {
+                window.initStorage();
+            } else {
+                loadValidationStateFromLocalStorage();
+            }
             loadProduct(0);
             updateProgressStats();
         };
