@@ -1,240 +1,327 @@
-<!-- ... existing code ... -->
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Busca e Validação de Produtos - Validador Pro</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            900: '#164e63',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Custom CSS & Glassmorphism Styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at top, #0f172a 0%, #020617 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-input {
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: all 0.2s ease;
+        }
+
+        .glass-input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+        }
+
+        /* Custom Toggle Switch */
+        .switch-checkbox:checked + .switch-label {
+            background-color: #10b981;
+        }
+
+        .switch-checkbox:checked + .switch-label .switch-ball {
+            transform: translateX(24px);
+        }
+
+        /* Toast Notifications */
+        #toastContainer {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(71, 85, 105, 1);
+        }
+    </style>
+</head>
+<body class="antialiased text-slate-100 min-h-screen flex flex-col justify-between">
+
+    <!-- Toast Notifications Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Main Top Navigation -->
+    <header class="border-b border-slate-800/80 glass-card sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+            
+            <!-- Logo & Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-emerald-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i data-lucide="check-check" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-black tracking-tight text-white flex items-center gap-2">
+                        Validador Pro
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">v2.5</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Gerenciador e Validador de Produtos Hotmart & Greenn</p>
+                </div>
+            </div>
+
             <!-- Global Action Buttons -->
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
                 <button 
                     onclick="openFirebaseSetupModal()" 
                     title="Como configurar e conectar seu próprio projeto do Firebase"
-                    class="px-3 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-lg shadow-indigo-500/10"
+                    class="px-3 py-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-lg shadow-indigo-500/10"
                 >
-                    <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                    <i data-lucide="settings" class="w-4 h-4"></i>
                     <span>⚙️ Guia Firebase</span>
                 </button>
+                
                 <button 
                     onclick="openAddModal()" 
-                    title="Cadastrar novo produto no Firebase"
-                    class="px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-lg shadow-emerald-500/10"
+                    title="Cadastrar novo produto no banco de dados"
+                    class="px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-lg shadow-emerald-500/10"
                 >
-                    <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
                     <span>+ Novo Produto</span>
                 </button>
+
                 <button 
                     onclick="selectAllItems()" 
-                    title="Marcar todos os itens da plataforma ativa"
-                    class="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
+                    title="Marcar todos os itens da plataforma ativa como validados"
+                    class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
                 >
-<!-- ... existing code ... -->
-    <!-- Firebase SDK Imports & Storage Logic -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, addDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+                    <i data-lucide="check-square" class="w-4 h-4 text-emerald-400"></i>
+                    <span>Marcar Todos</span>
+                </button>
 
-        window.initStorage = async function() {
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'validador-pro-app';
+                <button 
+                    onclick="clearAllValidations()" 
+                    title="Limpar validações da plataforma ativa"
+                    class="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
+                >
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    <span>Resetar</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-grow space-y-6">
+        
+        <!-- Search & Filter Header -->
+        <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-center justify-between gap-4">
             
-            // 1. Carrega do localStorage local
-            window.loadValidationStateFromLocalStorage();
+            <!-- Search Bar -->
+            <div class="relative w-full md:w-96">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    oninput="handleSearch()"
+                    placeholder="Buscar por nome, ID ou valor..." 
+                    class="w-full glass-input rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-100 placeholder-slate-400 focus:outline-none"
+                >
+            </div>
 
-            // 2. Se houver ambiente Firebase ativo, habilita sincronização em tempo real compartilhada
-            if (typeof __firebase_config !== 'undefined') {
-                try {
-                    const firebaseConfig = JSON.parse(__firebase_config);
-                    const app = initializeApp(firebaseConfig);
-                    const auth = getAuth(app);
-                    const db = getFirestore(app);
+            <!-- Stats Badge -->
+            <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+                <div class="px-3.5 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 font-medium">
+                    Progresso: <span id="progressStatsText" class="font-bold text-emerald-400">0 / 0 (0%)</span>
+                </div>
+                
+                <!-- Progress Bar Pill -->
+                <div class="w-32 bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700/50 hidden sm:block">
+                    <div id="progressBarFill" class="bg-gradient-to-r from-emerald-500 to-indigo-500 h-full w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+        </div>
 
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                    
-                    window.firestoreDb = db;
-                    window.firestoreAppId = appId;
-                    window.docFunc = doc;
-                    window.setDocFunc = setDoc;
-                    window.addDocFunc = addDoc;
-                    window.collectionFunc = collection;
+        <!-- Platform Tabs -->
+        <div class="flex items-center gap-3 border-b border-slate-800 pb-2">
+            <button 
+                id="btnPlatformHotmart" 
+                onclick="switchPlatform('hotmart')"
+                class="px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-500"
+            >
+                <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                <span>Hotmart</span>
+                <span id="badgeCountHotmart" class="ml-1.5 px-2 py-0.5 rounded-md bg-indigo-950 text-indigo-200 text-[10px]">0</span>
+            </button>
 
-                    // Escuta em tempo real o documento PÚBLICO para sincronizar entre todos os navegadores
-                    const publicDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'validationState', 'shared');
-                    
-                    onSnapshot(publicDocRef, (snap) => {
-                        if (snap.exists()) {
-                            const data = snap.data();
-                            if (Array.isArray(data.hotmart)) {
-                                validatedHotmart.clear();
-                                data.hotmart.forEach(num => validatedHotmart.add(num));
-                            }
-                            if (Array.isArray(data.greenn)) {
-                                validatedGreenn.clear();
-                                data.greenn.forEach(num => validatedGreenn.add(num));
-                            }
-                            // Salva também no localStorage para backup offline
-                            try {
-                                localStorage.setItem('validador_hotmart', JSON.stringify(Array.from(validatedHotmart)));
-                                localStorage.setItem('validador_greenn', JSON.stringify(Array.from(validatedGreenn)));
-                            } catch(e){}
+            <button 
+                id="btnPlatformGreenn" 
+                onclick="switchPlatform('greenn')"
+                class="px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-slate-800 text-slate-400 hover:text-white border border-slate-700"
+            >
+                <i data-lucide="zap" class="w-4 h-4"></i>
+                <span>Greenn</span>
+                <span id="badgeCountGreenn" class="ml-1.5 px-2 py-0.5 rounded-md bg-slate-900 text-slate-400 text-[10px]">0</span>
+            </button>
+        </div>
 
-                            if (typeof updateProgressStats === 'function') updateProgressStats();
-                            if (typeof loadProduct === 'function' && typeof currentIndex !== 'undefined') loadProduct(currentIndex);
-                        }
-                    }, (err) => console.warn("Erro no listener em tempo real:", err));
-
-                } catch (err) {
-                    console.warn("Sincronização em nuvem opcional não disponível:", err);
-                }
-            }
-        };
-    </script>
-
-    <script>
-        // Funções para Controle do Modal de Guia e Configuração do Firebase
-        function openFirebaseSetupModal() {
-            const modal = document.getElementById('firebaseSetupModal');
-            if (modal) modal.classList.remove('hidden');
-        }
-
-        function closeFirebaseSetupModal() {
-            const modal = document.getElementById('firebaseSetupModal');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        function switchFbTab(tab) {
-            const btnStep1 = document.getElementById('fbBtnStep1');
-            const btnStep2 = document.getElementById('fbBtnStep2');
-            const btnStep3 = document.getElementById('fbBtnStep3');
-            const btnStep4 = document.getElementById('fbBtnStep4');
-
-            const secStep1 = document.getElementById('fbSecStep1');
-            const secStep2 = document.getElementById('fbSecStep2');
-            const secStep3 = document.getElementById('fbSecStep3');
-            const secStep4 = document.getElementById('fbSecStep4');
-
-            [btnStep1, btnStep2, btnStep3, btnStep4].forEach(b => {
-                b.className = "px-3 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white transition";
-            });
-
-            [secStep1, secStep2, secStep3, secStep4].forEach(s => s.classList.add('hidden'));
-
-            if (tab === 1) {
-                btnStep1.className = "px-3 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
-                secStep1.classList.remove('hidden');
-            } else if (tab === 2) {
-                btnStep2.className = "px-3 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
-                secStep2.classList.remove('hidden');
-            } else if (tab === 3) {
-                btnStep3.className = "px-3 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
-                secStep3.classList.remove('hidden');
-            } else if (tab === 4) {
-                btnStep4.className = "px-3 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
-                secStep4.classList.remove('hidden');
-            }
-        }
-
-        // Funções para Controle do Modal de Cadastro no Banco de Dados
-        function openAddModal() {
-            const modal = document.getElementById('addProductModal');
-            if (modal) modal.classList.remove('hidden');
-        }
-
-        function closeAddModal() {
-            const modal = document.getElementById('addProductModal');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        function switchModalTab(tab) {
-            const tabForm = document.getElementById('tabModalForm');
-            const tabCode = document.getElementById('tabModalCode');
-            const formSection = document.getElementById('modalFormSection');
-            const codeSection = document.getElementById('modalCodeSection');
-
-            if (tab === 'form') {
-                tabForm.className = "px-4 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
-                tabCode.className = "px-4 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white";
-                formSection.classList.remove('hidden');
-                codeSection.classList.add('hidden');
-            } else {
-                tabCode.className = "px-4 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
-                tabForm.className = "px-4 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white";
-                codeSection.classList.remove('hidden');
-                formSection.classList.add('hidden');
-            }
-        }
-
-        async function saveProductToFirebase(event) {
-            event.preventDefault();
+        <!-- Main Product Viewer Card -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            const platform = document.getElementById('newProdPlatform').value;
-            const name = document.getElementById('newProdName').value.trim();
-            const codeOrVal = document.getElementById('newProdCodeOrVal').value.trim();
-            const status = document.getElementById('newProdStatus').value;
-
-            if (!name || !codeOrVal) {
-                showToast("Preencha todos os campos obrigatórios!", "alert-circle", "rose");
-                return;
-            }
-
-            const targetDataset = platform === 'hotmart' ? hotmartProducts : greennProducts;
-            const newNum = targetDataset.length + 1;
-
-            const newProduct = {
-                num: newNum,
-                name: name,
-                status: status
-            };
-
-            if (platform === 'hotmart') {
-                newProduct.id = codeOrVal;
-            } else {
-                newProduct.valor = codeOrVal.startsWith('R$') ? codeOrVal : `R$ ${codeOrVal}`;
-            }
-
-            // Adiciona localmente ao array correspondente
-            targetDataset.push(newProduct);
-
-            // Grava no Firebase Firestore se a conexão estiver ativa
-            if (window.firestoreDb && window.addDocFunc && window.collectionFunc) {
-                try {
-                    const appId = window.firestoreAppId || 'validador-pro-app';
-                    // Regra de caminho obrigatória: /artifacts/{appId}/public/data/{collectionName}
-                    const collectionRef = window.collectionFunc(window.firestoreDb, 'artifacts', appId, 'public', 'data', 'produtos');
+            <!-- Detailed Focused Item View -->
+            <div class="lg:col-span-2 glass-card rounded-3xl p-6 border border-slate-800/80 relative overflow-hidden flex flex-col justify-between min-h-[360px]">
+                <div class="space-y-4">
                     
-                    await window.addDocFunc(collectionRef, {
-                        ...newProduct,
-                        platform: platform,
-                        createdAt: new Date().toISOString()
-                    });
-                    
-                    showToast(`Produto cadastrado com sucesso no Firebase!`, "database", "emerald");
-                } catch (err) {
-                    console.error("Erro ao gravar no Firebase:", err);
-                    showToast("Salvo localmente (Erro ao conectar com Firebase)", "alert-triangle", "amber");
-                }
-            } else {
-                showToast(`Produto #${newNum} adicionado à lista local!`, "check-circle", "emerald");
-            }
+                    <!-- Card Header / Badges -->
+                    <div class="flex items-center justify-between">
+                        <span id="cardPlatformBadge" class="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                            Hotmart
+                        </span>
+                        <span id="cardStatusBadge" class="px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            Vendas ativas
+                        </span>
+                    </div>
 
-            // Atualiza interface da plataforma ativa
-            if (currentPlatform === platform) {
-                loadProduct(targetDataset.length - 1);
-                updateProgressStats();
-            } else {
-                switchPlatform(platform);
-                loadProduct(targetDataset.length - 1);
-            }
+                    <!-- Product Name -->
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Nome do Produto</p>
+                        <h2 id="cardProductName" class="text-xl sm:text-2xl font-black text-white leading-tight">
+                            Carregando produto...
+                        </h2>
+                    </div>
 
-            // Limpa o formulário e fecha modal
-            document.getElementById('newProdName').value = '';
-            document.getElementById('newProdCodeOrVal').value = '';
-            closeAddModal();
-        }
+                    <!-- Product Details Grid -->
+                    <div class="grid grid-cols-2 gap-4 pt-2">
+                        <div class="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+                            <p id="cardDetailLabel" class="text-[11px] font-bold text-slate-400 uppercase">ID do Produto</p>
+                            <p id="cardDetailValue" class="text-sm font-mono font-bold text-slate-200 mt-1">---</p>
+                        </div>
+                        <div class="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+                            <p class="text-[11px] font-bold text-slate-400 uppercase">Posição</p>
+                            <p id="cardPositionText" class="text-sm font-bold text-indigo-400 mt-1">1 de 1</p>
+                        </div>
+                    </div>
 
-        // ... existing code ...
-    <!-- Footer -->
-    <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-800/50">
-        Validador Pro &copy; 2026 &bull; Hotmart & Greenn Catalog Management
-    </footer>
+                    <!-- Validation Switch Box -->
+                    <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between mt-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+                                <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-white">Validar item processado</p>
+                                <p class="text-[11px] text-slate-400">Sincroniza o status do produto em tempo real</p>
+                            </div>
+                        </div>
+
+                        <!-- Toggle Switch -->
+                        <div class="relative inline-block w-12 h-6 align-middle select-none">
+                            <input 
+                                type="checkbox" 
+                                id="validationToggle" 
+                                onchange="toggleValidation()"
+                                class="switch-checkbox hidden"
+                            >
+                            <label 
+                                for="validationToggle" 
+                                class="switch-label block overflow-hidden h-6 rounded-full bg-slate-700 cursor-pointer transition-colors duration-200 ease-in"
+                            >
+                                <span class="switch-ball block w-4 h-4 m-1 rounded-full bg-white transition-transform duration-200 ease-in shadow-md"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Controls -->
+                <div class="flex items-center justify-between pt-6 border-t border-slate-800/80 mt-6">
+                    <button 
+                        onclick="prevProduct()" 
+                        class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-2 border border-slate-700 transition active:scale-95"
+                    >
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        <span>Anterior</span>
+                    </button>
+
+                    <button 
+                        onclick="nextProduct()" 
+                        class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-2 border border-indigo-500 shadow-lg shadow-indigo-600/30 transition active:scale-95"
+                    >
+                        <span>Próximo</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick List Sidebar -->
+            <div class="glass-card rounded-3xl p-5 border border-slate-800/80 flex flex-col h-[360px]">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                        <i data-lucide="list" class="w-4 h-4 text-indigo-400"></i>
+                        Lista de Produtos
+                    </h3>
+                    <span id="quickListTotal" class="text-[11px] font-bold text-slate-400">0 itens</span>
+                </div>
+
+                <!-- Scrollable Item List -->
+                <div id="quickProductList" class="flex-grow overflow-y-auto space-y-2 pr-1">
+                    <!-- Dynamic Items rendered by JS -->
+                </div>
+            </div>
+        </div>
+
+    </main>
 
     <!-- Modal: Guia Completo e Configuração do Firebase -->
     <div id="firebaseSetupModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
@@ -285,8 +372,8 @@
                     <ol class="list-decimal list-inside text-xs text-slate-300 space-y-2">
                         <li>Acesse o site oficial: <a href="https://console.firebase.google.com" target="_blank" class="text-indigo-400 underline font-bold hover:text-indigo-300">console.firebase.google.com</a></li>
                         <li>Faça login com sua conta do Google.</li>
-                        <li>Clique no botão <strong>"Adicionar projeto"</strong> (ou "Add project").</li>
-                        <li>Dê um nome para o seu projeto (ex: <code class="bg-slate-950 px-1.5 py-0.5 rounded text-amber-300">validador-produtos</code>) e clique em Continuar até concluir a criação.</li>
+                        <li>Clique no botão <strong>"Adicionar projeto"</strong>.</li>
+                        <li>Dê um nome para o seu projeto e clique em Continuar até concluir a criação.</li>
                     </ol>
                 </div>
             </div>
@@ -302,12 +389,12 @@
                     <div class="space-y-2 text-xs text-slate-300">
                         <div class="font-bold text-indigo-300">A) Ativar o Banco de Dados (Firestore):</div>
                         <p class="pl-3 border-l-2 border-indigo-500/40">
-                            No menu lateral esquerdo do Firebase Console, clique em <strong>Build</strong> &rarr; <strong>Firestore Database</strong> &rarr; clique em <strong>"Criar banco de dados"</strong>. Escolha a localização (ex: <i>nam5 - us-central</i>) e selecione <strong>Modo de teste</strong>.
+                            No menu lateral, vá em <strong>Build</strong> &rarr; <strong>Firestore Database</strong> &rarr; clique em <strong>"Criar banco de dados"</strong> em modo de teste.
                         </p>
 
                         <div class="font-bold text-indigo-300 pt-2">B) Ativar Autenticação Anônima:</div>
                         <p class="pl-3 border-l-2 border-indigo-500/40">
-                            No menu esquerdo, vá em <strong>Build</strong> &rarr; <strong>Authentication</strong> &rarr; clique em <strong>Primeiros passos</strong> &rarr; selecione <strong>Anônimo</strong> e clique em <strong>Ativar</strong>.
+                            Vá em <strong>Build</strong> &rarr; <strong>Authentication</strong> &rarr; clique em <strong>Anônimo</strong> e marque <strong>Ativar</strong>.
                         </p>
                     </div>
                 </div>
@@ -318,18 +405,13 @@
                 <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
                     <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
                         <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-xs">3</span>
-                        Configurar as Regras de Segurança do Firestore
+                        Configurar Regras de Segurança do Firestore
                     </h3>
-                    <p class="text-xs text-slate-300">
-                        Para permitir que o seu aplicativo leia e grave dados sem bloqueios de permissão, cole estas regras na aba <strong>Firestore Database &rarr; Regras (Rules)</strong> no Firebase Console:
-                    </p>
-
                     <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 font-mono text-xs overflow-x-auto text-emerald-400">
 <pre><code>rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permite leitura e escrita pública nas coleções da aplicação
-    match /artifacts/{appId}/public/data/{document=**} {
+    match /{document=**} {
       allow read, write: if true;
     }
   }
@@ -338,45 +420,20 @@ service cloud.firestore {
                 </div>
             </div>
 
-            <!-- Step 4: Copiar Credenciais e Usar no Código -->
+            <!-- Step 4: Copiar Credenciais -->
             <div id="fbSecStep4" class="hidden space-y-4">
                 <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
                     <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
                         <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-xs">4</span>
-                        Como Inserir as Credenciais (`firebaseConfig`) no Seu HTML
+                        Inserir Credenciais no Seu HTML
                     </h3>
                     <p class="text-xs text-slate-300">
-                        Vá nas <strong>Configurações do Projeto</strong> (ícone de engrenagem ⚙️) &rarr; role até <i>"Seus aplicativos"</i> &rarr; crie um App Web (&lt;/&gt;) e copie o objeto <code class="text-indigo-300">firebaseConfig</code>.
+                        Insira a variável <code class="text-indigo-300">firebaseConfig</code> na tag <code class="text-indigo-300">&lt;script type="module"&gt;</code> no seu arquivo HTML.
                     </p>
-
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-slate-300 overflow-x-auto">
-<pre><code>&lt;script type="module"&gt;
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-  // Suas credenciais do Firebase Console:
-  const firebaseConfig = {
-    apiKey: "AIzaSy...",
-    authDomain: "seu-projeto.firebaseapp.com",
-    projectId: "seu-projeto-id",
-    storageBucket: "seu-projeto.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:1234567890:web:abcdef..."
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-
-  // Autentica anonimamente e conecta ao banco
-  await signInAnonymously(auth);
-&lt;/script&gt;</code></pre>
-                    </div>
                 </div>
             </div>
 
-            <!-- Modal Bottom Actions -->
+            <!-- Modal Actions -->
             <div class="pt-4 border-t border-slate-800 flex justify-end">
                 <button onclick="closeFirebaseSetupModal()" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg">
                     Entendi! Fechar Guia
@@ -398,7 +455,7 @@ service cloud.firestore {
                     </div>
                     <div>
                         <h2 class="text-base font-extrabold text-white">Cadastrar em Banco de Dados (Firebase)</h2>
-                        <p class="text-xs text-slate-400">Grave dados em tempo real ou aprenda o código</p>
+                        <p class="text-xs text-slate-400">Grave dados em tempo real na sua lista de produtos</p>
                     </div>
                 </div>
                 <button onclick="closeAddModal()" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition">
@@ -409,7 +466,7 @@ service cloud.firestore {
             <!-- Modal Tabs -->
             <div class="flex gap-2 mb-6">
                 <button id="tabModalForm" onclick="switchModalTab('form')" class="px-4 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow">
-                     Formuário de Cadastro
+                     Formulário de Cadastro
                 </button>
                 <button id="tabModalCode" onclick="switchModalTab('code')" class="px-4 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white">
                     <i data-lucide="code" class="w-3.5 h-3.5 inline mr-1"></i> Como Funciona no Código
@@ -450,9 +507,9 @@ service cloud.firestore {
                         <button type="button" onclick="closeAddModal()" class="px-4 py-2.5 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-semibold">
                             Cancelar
                         </button>
-                        <button type="submit" class="glow-button bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-600/30">
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-600/30">
                             <i data-lucide="save" class="w-4 h-4"></i>
-                            <span>Salvar no Firebase</span>
+                            <span>Salvar Produto</span>
                         </button>
                     </div>
                 </form>
@@ -461,47 +518,428 @@ service cloud.firestore {
             <!-- Tab 2: Tutorial Code Section -->
             <div id="modalCodeSection" class="hidden space-y-4">
                 <div class="text-xs text-slate-300 leading-relaxed">
-                    Para registrar ou salvar dados no banco de dados <strong>Firebase Firestore</strong>, utilizamos duas funções principais da biblioteca SDK JS:
-                </div>
-
-                <div class="space-y-3">
-                    <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 text-xs font-mono">
-                        <div class="text-emerald-400 font-bold mb-1">// 1. addDoc(): Cria um novo documento com ID gerado automaticamente</div>
-                        <pre class="text-slate-300 overflow-x-auto"><code>import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-const db = getFirestore();
-const colRef = collection(db, "artifacts", appId, "public", "data", "produtos");
-
-await addDoc(colRef, {
-  name: "Curso de Eletrônica",
-  valor: "R$ 297,00",
-  createdAt: new Date().toISOString()
-});</code></pre>
-                    </div>
-
-                    <div class="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 text-xs font-mono">
-                        <div class="text-indigo-400 font-bold mb-1">// 2. setDoc(): Salva com um ID customizado ou atualiza dados existentes</div>
-                        <pre class="text-slate-300 overflow-x-auto"><code>import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-const docRef = doc(db, "artifacts", appId, "public", "data", "produtos", "id_123");
-
-await setDoc(docRef, {
-  name: "Curso de Eletrônica",
-  valor: "R$ 297,00"
-}, { merge: true });</code></pre>
-                    </div>
-                </div>
-
-                <div class="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs text-indigo-300 flex items-start gap-2">
-                    <i data-lucide="info" class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"></i>
-                    <div>
-                        <strong>Regra Importante do Firestore:</strong> Lembre-se de sempre inicializar a autenticação (<code>signInAnonymously</code>) antes de executar operações de leitura e escrita.
-                    </div>
+                    Para registrar ou salvar dados no banco de dados <strong>Firebase Firestore</strong>, utilizamos as funções <code class="text-indigo-300">addDoc</code> e <code class="text-indigo-300">setDoc</code>.
                 </div>
             </div>
 
         </div>
     </div>
 
-    <!-- Firebase SDK Imports & Storage Logic -->
-<!-- ... existing code ... -->
+    <!-- Footer -->
+    <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-800/50">
+        Validador Pro &copy; 2026 &bull; Gerenciamento Integrado Hotmart & Greenn
+    </footer>
+
+    <!-- Core Application Logic Script (Global Scope Binding) -->
+    <script>
+        // Default Datasets for Hotmart and Greenn
+        window.hotmartProducts = [
+            { num: 1, id: "8412034", name: "Formação Especialista em Fontes Chaveadas", status: "Vendas ativas" },
+            { num: 2, id: "8412035", name: "Curso Completo de Reparador de Amplificadores", status: "Vendas ativas" },
+            { num: 3, id: "8412036", name: "Masterclass de Osciloscópio e Diagnóstico", status: "Vendas ativas" },
+            { num: 4, id: "8412037", name: "Inversores Solares e Sistemas Fotovoltaicos", status: "Vendas ativas" },
+            { num: 5, id: "8412038", name: "Manutenção de Placas Eletrônicas Avançadas", status: "Em rascunho" }
+        ];
+
+        window.greennProducts = [
+            { num: 1, valor: "R$ 497,00", name: "Mentoria VIP de Gestão de Assistência", status: "Vendas ativas" },
+            { num: 2, valor: "R$ 297,00", name: "Comunidade de Eletrônica e Automação", status: "Vendas ativas" },
+            { num: 3, valor: "R$ 197,00", name: "Treinamento Prático de Solda SMD", status: "Vendas ativas" },
+            { num: 4, valor: "R$ 97,00", name: "Guia de Esquemas Elétricos e Diagramas", status: "Em rascunho" }
+        ];
+
+        // Validated Item Sets
+        window.validatedHotmart = new Set();
+        window.validatedGreenn = new Set();
+
+        window.currentPlatform = 'hotmart';
+        window.currentIndex = 0;
+        window.filteredProducts = [];
+
+        // Toast Notification System
+        window.showToast = function(message, iconName = 'info', color = 'indigo') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `p-3.5 rounded-2xl bg-slate-900 border border-slate-700 shadow-xl flex items-center gap-3 text-xs text-slate-200 transition-all duration-300 transform translate-y-2 opacity-0`;
+            
+            toast.innerHTML = `
+                <div class="w-7 h-7 rounded-lg bg-${color}-500/20 text-${color}-400 flex items-center justify-center shrink-0">
+                    <i data-lucide="${iconName}" class="w-4 h-4"></i>
+                </div>
+                <span class="font-semibold">${message}</span>
+            `;
+
+            container.appendChild(toast);
+            if (window.lucide) window.lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        };
+
+        // Modal Control Handlers bound directly to window to eliminate ReferenceError
+        window.openAddModal = function() {
+            const modal = document.getElementById('addProductModal');
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.closeAddModal = function() {
+            const modal = document.getElementById('addProductModal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.openFirebaseSetupModal = function() {
+            const modal = document.getElementById('firebaseSetupModal');
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.closeFirebaseSetupModal = function() {
+            const modal = document.getElementById('firebaseSetupModal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.switchFbTab = function(tab) {
+            const btnStep1 = document.getElementById('fbBtnStep1');
+            const btnStep2 = document.getElementById('fbBtnStep2');
+            const btnStep3 = document.getElementById('fbBtnStep3');
+            const btnStep4 = document.getElementById('fbBtnStep4');
+
+            const secStep1 = document.getElementById('fbSecStep1');
+            const secStep2 = document.getElementById('fbSecStep2');
+            const secStep3 = document.getElementById('fbSecStep3');
+            const secStep4 = document.getElementById('fbSecStep4');
+
+            [btnStep1, btnStep2, btnStep3, btnStep4].forEach(b => {
+                if (b) b.className = "px-3 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white transition";
+            });
+
+            [secStep1, secStep2, secStep3, secStep4].forEach(s => {
+                if (s) s.classList.add('hidden');
+            });
+
+            const btnMap = { 1: btnStep1, 2: btnStep2, 3: btnStep3, 4: btnStep4 };
+            const secMap = { 1: secStep1, 2: secStep2, 3: secStep3, 4: secStep4 };
+
+            if (btnMap[tab]) btnMap[tab].className = "px-3 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
+            if (secMap[tab]) secMap[tab].classList.remove('hidden');
+        };
+
+        window.switchModalTab = function(tab) {
+            const tabForm = document.getElementById('tabModalForm');
+            const tabCode = document.getElementById('tabModalCode');
+            const formSection = document.getElementById('modalFormSection');
+            const codeSection = document.getElementById('modalCodeSection');
+
+            if (tab === 'form') {
+                tabForm.className = "px-4 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
+                tabCode.className = "px-4 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white";
+                formSection.classList.remove('hidden');
+                codeSection.classList.add('hidden');
+            } else {
+                tabCode.className = "px-4 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white border border-indigo-500 shadow";
+                tabForm.className = "px-4 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-400 border border-slate-700 hover:text-white";
+                codeSection.classList.remove('hidden');
+                formSection.classList.add('hidden');
+            }
+        };
+
+        // Main Navigation and Data Rendering Logic
+        window.getActiveDataset = function() {
+            return window.currentPlatform === 'hotmart' ? window.hotmartProducts : window.greennProducts;
+        };
+
+        window.getActiveValidatedSet = function() {
+            return window.currentPlatform === 'hotmart' ? window.validatedHotmart : window.validatedGreenn;
+        };
+
+        window.loadProduct = function(index) {
+            const dataset = window.getActiveDataset();
+            const validatedSet = window.getActiveValidatedSet();
+
+            if (!dataset || dataset.length === 0) return;
+
+            if (index < 0) index = 0;
+            if (index >= dataset.length) index = dataset.length - 1;
+            window.currentIndex = index;
+
+            const item = dataset[window.currentIndex];
+
+            // Render Card Data
+            document.getElementById('cardPlatformBadge').innerText = window.currentPlatform.toUpperCase();
+            document.getElementById('cardProductName').innerText = item.name;
+            document.getElementById('cardStatusBadge').innerText = item.status || 'Vendas ativas';
+            document.getElementById('cardPositionText').innerText = `${window.currentIndex + 1} de ${dataset.length}`;
+
+            if (window.currentPlatform === 'hotmart') {
+                document.getElementById('cardDetailLabel').innerText = 'ID do Produto (Hotmart)';
+                document.getElementById('cardDetailValue').innerText = item.id || `HOT-${item.num}`;
+            } else {
+                document.getElementById('cardDetailLabel').innerText = 'Valor do Produto (Greenn)';
+                document.getElementById('cardDetailValue').innerText = item.valor || 'R$ 0,00';
+            }
+
+            // Set Switch state
+            const isChecked = validatedSet.has(item.num);
+            document.getElementById('validationToggle').checked = isChecked;
+
+            window.updateProgressStats();
+            window.renderQuickList();
+        };
+
+        window.switchPlatform = function(platform) {
+            window.currentPlatform = platform;
+            const btnHotmart = document.getElementById('btnPlatformHotmart');
+            const btnGreenn = document.getElementById('btnPlatformGreenn');
+
+            if (platform === 'hotmart') {
+                btnHotmart.className = "px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-500";
+                btnGreenn.className = "px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-slate-800 text-slate-400 hover:text-white border border-slate-700";
+            } else {
+                btnGreenn.className = "px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-500";
+                btnHotmart.className = "px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all bg-slate-800 text-slate-400 hover:text-white border border-slate-700";
+            }
+
+            window.loadProduct(0);
+        };
+
+        window.nextProduct = function() {
+            window.loadProduct(window.currentIndex + 1);
+        };
+
+        window.prevProduct = function() {
+            window.loadProduct(window.currentIndex - 1);
+        };
+
+        window.toggleValidation = function() {
+            const dataset = window.getActiveDataset();
+            const validatedSet = window.getActiveValidatedSet();
+            const currentItem = dataset[window.currentIndex];
+
+            if (!currentItem) return;
+
+            const isChecked = document.getElementById('validationToggle').checked;
+
+            if (isChecked) {
+                validatedSet.add(currentItem.num);
+                window.showToast(`Produto "${currentItem.name}" validado!`, "check-circle", "emerald");
+            } else {
+                validatedSet.delete(currentItem.num);
+                window.showToast(`Validação removida.`, "info", "amber");
+            }
+
+            window.saveLocalState();
+            window.updateProgressStats();
+            window.renderQuickList();
+
+            if (typeof window.triggerFirebaseSync === 'function') {
+                window.triggerFirebaseSync();
+            }
+        };
+
+        window.selectAllItems = function() {
+            const dataset = window.getActiveDataset();
+            const validatedSet = window.getActiveValidatedSet();
+
+            dataset.forEach(item => validatedSet.add(item.num));
+            window.saveLocalState();
+            window.loadProduct(window.currentIndex);
+            window.showToast("Todos os itens foram validados!", "check-square", "emerald");
+
+            if (typeof window.triggerFirebaseSync === 'function') window.triggerFirebaseSync();
+        };
+
+        window.clearAllValidations = function() {
+            const validatedSet = window.getActiveValidatedSet();
+            validatedSet.clear();
+            window.saveLocalState();
+            window.loadProduct(window.currentIndex);
+            window.showToast("Validações limpas com sucesso.", "rotate-ccw", "rose");
+
+            if (typeof window.triggerFirebaseSync === 'function') window.triggerFirebaseSync();
+        };
+
+        window.updateProgressStats = function() {
+            const dataset = window.getActiveDataset();
+            const validatedSet = window.getActiveValidatedSet();
+
+            const total = dataset.length;
+            const count = validatedSet.size;
+            const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+
+            document.getElementById('progressStatsText').innerText = `${count} / ${total} (${percent}%)`;
+            document.getElementById('progressBarFill').style.width = `${percent}%`;
+
+            document.getElementById('badgeCountHotmart').innerText = window.validatedHotmart.size;
+            document.getElementById('badgeCountGreenn').innerText = window.validatedGreenn.size;
+            document.getElementById('quickListTotal').innerText = `${total} itens`;
+        };
+
+        window.renderQuickList = function() {
+            const container = document.getElementById('quickProductList');
+            if (!container) return;
+
+            const dataset = window.getActiveDataset();
+            const validatedSet = window.getActiveValidatedSet();
+
+            container.innerHTML = dataset.map((item, idx) => {
+                const isValidated = validatedSet.has(item.num);
+                const isSelected = idx === window.currentIndex;
+
+                return `
+                    <div 
+                        onclick="loadProduct(${idx})"
+                        class="p-2.5 rounded-xl cursor-pointer transition border flex items-center justify-between gap-2 ${
+                            isSelected 
+                                ? 'bg-indigo-600/20 border-indigo-500/50 text-white' 
+                                : 'bg-slate-900/40 border-slate-800/80 hover:bg-slate-800/60 text-slate-300'
+                        }"
+                    >
+                        <div class="truncate text-xs font-semibold">
+                            <span class="text-slate-500 font-mono mr-1">#${item.num}</span>
+                            ${item.name}
+                        </div>
+                        <i data-lucide="${isValidated ? 'check-circle-2' : 'circle'}" class="w-4 h-4 shrink-0 ${
+                            isValidated ? 'text-emerald-400' : 'text-slate-600'
+                        }"></i>
+                    </div>
+                `;
+            }).join('');
+
+            if (window.lucide) window.lucide.createIcons();
+        };
+
+        window.handleSearch = function() {
+            const term = document.getElementById('searchInput').value.toLowerCase().trim();
+            const dataset = window.getActiveDataset();
+
+            if (!term) return;
+
+            const foundIdx = dataset.findIndex(p => 
+                p.name.toLowerCase().includes(term) || 
+                (p.id && p.id.toLowerCase().includes(term)) ||
+                (p.valor && p.valor.toLowerCase().includes(term))
+            );
+
+            if (foundIdx !== -1) {
+                window.loadProduct(foundIdx);
+            }
+        };
+
+        // Local Storage Backup
+        window.saveLocalState = function() {
+            try {
+                localStorage.setItem('validador_hotmart', JSON.stringify(Array.from(window.validatedHotmart)));
+                localStorage.setItem('validador_greenn', JSON.stringify(Array.from(window.validatedGreenn)));
+            } catch(e){}
+        };
+
+        window.loadLocalState = function() {
+            try {
+                const h = localStorage.getItem('validador_hotmart');
+                const g = localStorage.getItem('validador_greenn');
+                if (h) JSON.parse(h).forEach(id => window.validatedHotmart.add(id));
+                if (g) JSON.parse(g).forEach(id => window.validatedGreenn.add(id));
+            } catch(e){}
+        };
+
+        // Form Submit Handler
+        window.saveProductToFirebase = async function(event) {
+            event.preventDefault();
+            const platform = document.getElementById('newProdPlatform').value;
+            const name = document.getElementById('newProdName').value.trim();
+            const codeOrVal = document.getElementById('newProdCodeOrVal').value.trim();
+            const status = document.getElementById('newProdStatus').value;
+
+            if (!name || !codeOrVal) {
+                window.showToast("Preencha todos os campos obrigatórios!", "alert-circle", "rose");
+                return;
+            }
+
+            const targetDataset = platform === 'hotmart' ? window.hotmartProducts : window.greennProducts;
+            const newNum = targetDataset.length + 1;
+
+            const newProduct = { num: newNum, name: name, status: status };
+            if (platform === 'hotmart') newProduct.id = codeOrVal;
+            else newProduct.valor = codeOrVal.startsWith('R$') ? codeOrVal : `R$ ${codeOrVal}`;
+
+            targetDataset.push(newProduct);
+
+            window.showToast(`Produto #${newNum} adicionado com sucesso!`, "check-circle", "emerald");
+            window.closeAddModal();
+
+            if (window.currentPlatform === platform) {
+                window.loadProduct(targetDataset.length - 1);
+            } else {
+                window.switchPlatform(platform);
+                window.loadProduct(targetDataset.length - 1);
+            }
+        };
+
+        // Initializer on Page Load
+        window.addEventListener('DOMContentLoaded', () => {
+            window.loadLocalState();
+            window.loadProduct(0);
+            if (window.lucide) window.lucide.createIcons();
+        });
+    </script>
+
+    <!-- Firebase Realtime Sync Handler -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Optional default Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCQ4Zn0c2z4ogdSwBD364cvmm3NSkoBC6I",
+            authDomain: "joice-ac6ed.firebaseapp.com",
+            projectId: "joice-ac6ed",
+            storageBucket: "joice-ac6ed.firebasestorage.app",
+            messagingSenderId: "956744607142",
+            appId: "1:956744607142:web:865c5bf044ab91f1429b67"
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+            const docRef = doc(db, "validador_pro", "status_global");
+
+            signInAnonymously(auth).then(() => {
+                onSnapshot(docRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (Array.isArray(data.hotmart)) {
+                            window.validatedHotmart.clear();
+                            data.hotmart.forEach(id => window.validatedHotmart.add(id));
+                        }
+                        if (Array.isArray(data.greenn)) {
+                            window.validatedGreenn.clear();
+                            data.greenn.forEach(id => window.validatedGreenn.add(id));
+                        }
+                        window.updateProgressStats();
+                        window.loadProduct(window.currentIndex);
+                    }
+                }, (err) => console.warn("Firebase snapshot error:", err));
+            }).catch(e => console.warn("Auth error:", e));
+
+            window.triggerFirebaseSync = function() {
+                setDoc(docRef, {
+                    hotmart: Array.from(window.validatedHotmart),
+                    greenn: Array.from(window.validatedGreenn),
+                    updatedAt: new Date().toISOString()
+                }, { merge: true }).catch(err => console.warn("Firebase setDoc error:", err));
+            };
+        } catch(e) {
+            console.warn("Firebase initialization skipped:", e);
+        }
+    </script>
+</body>
+</html>
