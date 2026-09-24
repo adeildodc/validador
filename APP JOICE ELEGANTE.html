@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador Pro - Hotmart & Greenn</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f19;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .glass-card {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .glass-input {
+            background: rgba(31, 41, 55, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-input:focus {
+            border-color: rgba(99, 102, 241, 0.6);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.25);
+        }
+
+        .glow-button {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .glow-button::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(45deg, #6366f1, #a855f7, #10b981);
+            border-radius: 0.5rem;
+            z-index: -1;
+            opacity: 0;
+            filter: blur(10px);
+            transition: opacity 0.3s ease;
+        }
+
+        .glow-button:hover::after {
+            opacity: 0.8;
+        }
+
+        /* Custom Switch Styling */
+        .switch-checkbox:checked + .switch-label {
+            background: linear-gradient(90deg, #10b981, #059669);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .switch-checkbox:checked + .switch-label .switch-ball {
+            transform: translateX(1.5rem);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.4);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.7);
+        }
+
+        .tab-btn {
+            transition: all 0.25s ease;
+        }
+        .tab-btn.active {
+            background-color: rgba(99, 102, 241, 0.25);
+            border-color: rgba(99, 102, 241, 0.6);
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <header class="w-full border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-5xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-4">
+            <!-- Logo & Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
+                        VALIDADOR<span class="text-indigo-400">PRO</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">Gestão de Catálogo Multiplataforma</p>
+                </div>
+            </div>
+
+            <!-- Platform Switcher Tabs -->
+            <div class="flex items-center p-1 bg-slate-950/70 rounded-xl border border-slate-800">
+                <button 
+                    id="tabHotmart"
+                    onclick="switchPlatform('hotmart')" 
+                    class="tab-btn active px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 border border-transparent text-slate-400 hover:text-slate-200"
+                >
+                    <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                    Hotmart (68)
+                </button>
+                <button 
+                    id="tabGreenn"
+                    onclick="switchPlatform('greenn')" 
+                    class="tab-btn px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 border border-transparent text-slate-400 hover:text-slate-200"
+                >
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Greenn (58)
+                </button>
+            </div>
+
+            <!-- Global Stats Header -->
+            <div class="flex items-center gap-3 bg-slate-800/50 px-3.5 py-2 rounded-xl border border-slate-700/50 text-xs">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-slate-400">Validados:</span>
+                    <span id="validatedCount" class="font-bold text-white">0</span> / <span id="totalPlatformCount" class="text-slate-400">68</span>
+                </div>
+                <div class="w-px h-4 bg-slate-700"></div>
+                <div class="text-indigo-300 font-extrabold" id="percentageText">0%</div>
+            </div>
+
+            <!-- Global Action Buttons -->
+            <div class="flex items-center gap-2">
+                <button 
+                    onclick="selectAllItems()" 
+                    title="Marcar todos os itens da plataforma ativa"
+                    class="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
+                >
+                    <i data-lucide="check-check" class="w-3.5 h-3.5"></i>
+                    <span class="hidden sm:inline">Marcar Todos</span>
+                </button>
+                <button 
+                    onclick="unselectAllItems()" 
+                    title="Desmarcar todos os itens da plataforma ativa"
+                    class="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
+                >
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                    <span>Desmarcar Todos</span>
+                </button>
+            </div>
+        </div>
+        <!-- Progress Bar Line -->
+        <div class="w-full bg-slate-800/50 h-1.5 overflow-hidden">
+            <div id="topProgressBar" class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 transition-all duration-300 w-0"></div>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto w-full px-4 py-8 flex-1 flex flex-col justify-center">
+
+        <!-- Search Bar Section -->
+        <div class="relative mb-6">
+            <div class="relative flex items-center">
+                <i data-lucide="search" class="w-5 h-5 absolute left-4 text-slate-400 pointer-events-none"></i>
+                <input 
+                    type="text" 
+                    id="searchInput"
+                    oninput="onSearchInput()"
+                    placeholder="Buscar na plataforma ativa por Número (ex: 12), Nome ou Código/Valor..." 
+                    class="w-full pl-12 pr-10 py-3.5 rounded-2xl glass-input text-sm text-slate-100 placeholder-slate-400 focus:outline-none transition shadow-lg"
+                    autocomplete="off"
+                >
+                <button 
+                    id="clearSearchBtn"
+                    onclick="clearSearch()"
+                    class="hidden absolute right-3 p-1 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-slate-200 transition"
+                >
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Search Dynamic Dropdown Results -->
+            <div 
+                id="searchResults" 
+                class="hidden absolute left-0 right-0 top-full mt-2 glass-card rounded-2xl border border-slate-700/80 max-h-64 overflow-y-auto divide-y divide-slate-800 z-50 shadow-2xl"
+            ></div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+            
+            <!-- Top Badges Row -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <div class="flex items-center gap-2">
+                    <span class="px-3 py-1 rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 font-extrabold text-sm tracking-wide">
+                        <span id="displayNum">1</span>º Produto
+                    </span>
+                    <span id="platformBadge" class="px-2.5 py-1 rounded-xl text-xs font-bold uppercase tracking-wider bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                        Hotmart
+                    </span>
+                </div>
+
+                <!-- Extra Info Display (ID for Hotmart or Valor for Greenn) -->
+                <div id="extraInfoContainer" class="flex items-center gap-2">
+                    <div id="displayStatus" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>Vendas ativas
+                    </div>
+                    <div class="text-xs text-slate-400 bg-slate-900/60 px-3 py-1.5 rounded-xl border border-slate-800">
+                        <span id="extraInfoLabel">ID:</span> <span id="displayExtraValue" class="font-mono font-bold text-slate-200">8433965</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Copiable Product Name Box -->
+            <div class="mb-6 relative">
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                    Nome do Produto (Campo Copiável)
+                </label>
+                <div class="relative">
+                    <textarea 
+                        id="productNameInput" 
+                        readonly 
+                        rows="2"
+                        class="w-full glass-input rounded-2xl p-4 pr-36 text-slate-100 font-bold text-base sm:text-lg resize-none focus:outline-none transition leading-snug cursor-pointer select-all"
+                        onclick="this.select()"
+                    ></textarea>
+                    
+                    <button 
+                        id="copyBtn"
+                        onclick="copyToClipboard()" 
+                        class="absolute right-3 bottom-3 glow-button bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 transition shadow-lg shadow-indigo-600/30 active:scale-95"
+                    >
+                        <i data-lucide="copy" id="copyIcon" class="w-4 h-4"></i>
+                        <span id="copyBtnText">Copiar Nome</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="w-full h-px bg-slate-800/80 mb-6"></div>
+
+            <!-- Validation Checkbox Section -->
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="relative inline-block w-12 h-6 align-middle select-none">
+                        <input 
+                            type="checkbox" 
+                            id="validationCheckbox" 
+                            onchange="toggleValidationStatus()"
+                            class="switch-checkbox absolute opacity-0 w-0 h-0"
+                        />
+                        <label 
+                            for="validationCheckbox" 
+                            class="switch-label block overflow-hidden h-6 rounded-full bg-slate-800 border border-slate-700 cursor-pointer transition-all duration-300"
+                        >
+                            <span class="switch-ball block w-4 h-4 rounded-full bg-white shadow-md transform translate-x-1 translate-y-0.5 transition-transform duration-300"></span>
+                        </label>
+                    </div>
+                    <label for="validationCheckbox" class="text-sm font-semibold text-slate-300 cursor-pointer select-none">
+                        Validar item processado
+                    </label>
+                </div>
+
+                <!-- Shortcuts Helper -->
+                <div class="hidden sm:flex items-center gap-2 text-xs text-slate-500">
+                    <span>Navegação:</span>
+                    <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300 font-mono">←</kbd>
+                    <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300 font-mono">→</kbd>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="grid grid-cols-2 gap-4 mt-6">
+            <button 
+                onclick="previousItem()" 
+                class="px-5 py-3.5 rounded-2xl glass-card hover:bg-slate-800/80 text-slate-200 font-semibold text-sm flex items-center justify-center gap-2 transition active:scale-95 group border border-slate-700/60"
+            >
+                <i data-lucide="arrow-left" class="w-4 h-4 text-slate-400 group-hover:-translate-x-1 transition-transform"></i>
+                <span>Anterior</span>
+            </button>
+
+            <button 
+                onclick="nextItem()" 
+                class="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-indigo-600/25 active:scale-95 group"
+            >
+                <span>Próximo</span>
+                <span id="nextItemBadge" class="px-2 py-0.5 rounded-lg bg-white/20 text-xs font-mono">#2</span>
+                <i data-lucide="arrow-right" class="w-4 h-4 text-white group-hover:translate-x-1 transition-transform"></i>
+            </button>
+        </div>
+    </main>
+
+    <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 ease-out pointer-events-none">
+        <div class="glass-card px-4 py-3 rounded-xl border border-indigo-500/30 shadow-2xl flex items-center gap-3 text-xs font-semibold text-white">
+            <div id="toastIconContainer" class="p-1 rounded-lg bg-indigo-500/20 text-indigo-400">
+                <i data-lucide="info" id="toastIcon" class="w-4 h-4"></i>
+            </div>
+            <span id="toastMessage">Ação realizada com sucesso!</span>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-800/50">
+        Validador Pro &copy; 2026 &bull; Hotmart & Greenn Catalog Management
+    </footer>
+
+    <script>
+        // Dataset Hotmart (68 Produtos)
+        const hotmartProducts = [
+            { num: 1, id: "8433965", name: "20 Dicas de Fontes Chaveadas", status: "Vendas ativas" },
+            { num: 2, id: "8426345", name: "Acelerador de Reparos de Equipamentos com Tecnologias Inverter", status: "Vendas ativas" },
+            { num: 3, id: "8435436", name: "Analise e manutenção de controladores de Carga MPPT", status: "Vendas ativas" },
+            { num: 4, id: "8435629", name: "Análise e manutenção de Inversores Híbridos", status: "Vendas ativas" },
+            { num: 5, id: "8435937", name: "Analise e Reparos de Inversores ON-Grid", status: "Vendas ativas" },
+            { num: 6, id: "8436325", name: "Eletrônica Base - TEORIA E PRÁTICA", status: "Vendas ativas" },
+            { num: 7, id: "8427200", name: "Eletrônica de Potência I", status: "Em rascunho" },
+            { num: 8, id: "8433867", name: "Eletrônica do Zero ao Avançado", status: "Vendas ativas" },
+            { num: 9, id: "8425950", name: "Eletrônica Inicial Analógica", status: "Vendas ativas" },
+            { num: 10, id: "8386729", name: "Especialista em Manutenção em Esteiras de Academia", status: "Vendas ativas" },
+            { num: 11, id: "8354367", name: "Especialista em Manutenção em Inversores de Frequência e Soft Start", status: "Vendas ativas" },
+            { num: 12, id: "8386375", name: "Especialista em Manutenção em Inversores Solares", status: "Vendas ativas" },
+            { num: 13, id: "8429234", name: "Especialista em Manutenção em Máquinas Lava e Seca", status: "Vendas ativas" },
+            { num: 14, id: "8387896", name: "Especialista em Manutenção em Nobreak", status: "Vendas ativas" },
+            { num: 15, id: "8427590", name: "Instalação de Ar Condicionado Split", status: "Vendas ativas" },
+            { num: 16, id: "8436481", name: "Internet das coisas (IOT) ESP32", status: "Vendas ativas" },
+            { num: 17, id: "8427305", name: "Manutenção de Amplificadores de Áudio Class H", status: "Vendas ativas" },
+            { num: 18, id: "8426838", name: "Manutenção em caixas JBL", status: "Vendas ativas" },
+            { num: 19, id: "8393654", name: "Manutenção em Fontes ATX", status: "Vendas ativas" },
+            { num: 20, id: "8393622", name: "Manutenção em Fontes Chaveadas de Games", status: "Vendas ativas" },
+            { num: 21, id: "8393574", name: "Manutenção em Máquinas Inversoras de Solda", status: "Vendas ativas" },
+            { num: 22, id: "8436685", name: "MANUTENÇÃO EM PLACAS DE GELADEIRAS INVERTER", status: "Vendas ativas" },
+            { num: 23, id: "8429312", name: "Programação de microcontroladores e ESP32", status: "Vendas ativas" },
+            { num: 24, id: "8435225", name: "Reparos na prática de Fontes Chaveadas", status: "Vendas ativas" },
+            { num: 25, id: "8435060", name: "Semicondutores de Alta Potência", status: "Vendas ativas" },
+            { num: 26, id: "8434723", name: "Técnologias aplicadas em placas principais de televisores", status: "Vendas ativas" },
+            { num: 27, id: "8426199", name: "Acelerador de Reparos Eletrônicos", status: "Vendas ativas" },
+            { num: 28, id: "8389111", name: "Acesso 01 Ano - Especialista em Manutenção de Amplificadores de Áudio", status: "Vendas ativas" },
+            { num: 29, id: "8389107", name: "Acesso 02 Anos - Especialista em Manutenção de Amplificadores de áudio 2.0", status: "Vendas ativas" },
+            { num: 30, id: "8434658", name: "Altium Designer", status: "Vendas ativas" },
+            { num: 31, id: "8434975", name: "Análise de CI’s: Aplicados em Fontes Chaveadas", status: "Vendas ativas" },
+            { num: 32, id: "8435210", name: "Análise de Circuito Avançada em Placa de Notebooks - Fontes", status: "Vendas ativas" },
+            { num: 33, id: "8427100", name: "Análise de Datasheets", status: "Vendas ativas" },
+            { num: 34, id: "8435538", name: "Análise e Manutenção de Inversor de Frequência", status: "Vendas ativas" },
+            { num: 35, id: "8435797", name: "Análise e Manutenção de Softstarter", status: "Vendas ativas" },
+            { num: 36, id: "8435855", name: "Analise e Reparos de Inversores OFF-Grid", status: "Vendas ativas" },
+            { num: 37, id: "8435993", name: "Autoclave Tanda Color Class- N", status: "Vendas ativas" },
+            { num: 38, id: "8436090", name: "Conversores DC-DC não Isolados", status: "Vendas ativas" },
+            { num: 39, id: "8426274", name: "Curso Acelerador de Reparos em Inversores solares", status: "Vendas ativas" },
+            { num: 40, id: "8436130", name: "Curso de Analise de Circuito Integrado Aplicado a Fontes Chaveadas", status: "Vendas ativas" },
+            { num: 41, id: "8436178", name: "Curso de Analise de Circuitos de Fonte ATX - Corsair VS600", status: "Vendas ativas" },
+            { num: 42, id: "8436283", name: "Eletrônica Aplicada - Manutenção Industrial", status: "Vendas ativas" },
+            { num: 43, id: "8427256", name: "Eletrônica Digital", status: "Vendas ativas" },
+            { num: 44, id: "8427321", name: "Engenharia reversa de PCB", status: "Vendas ativas" },
+            { num: 45, id: "8386559", name: "Especialista em Manutenção de Amplificadores de Áudio", status: "Vendas ativas" },
+            { num: 46, id: "7763455", name: "Especialista em manutenção de Equipamentos Odontológicos, Estética e Fisioterapia", status: "Vendas ativas" },
+            { num: 47, id: "8386661", name: "Especialista em Manutenção de Fontes Chaveadas", status: "Vendas ativas" },
+            { num: 48, id: "8436379", name: "Especialista em Manutenção de Mini System", status: "Vendas ativas" },
+            { num: 49, id: "8388516", name: "Especialista em Manutenção de Placas de ar Inverter", status: "Vendas ativas" },
+            { num: 50, id: "8386457", name: "Especialista em Manutenção de Tecnologia Inverter", status: "Vendas ativas" },
+            { num: 51, id: "8425848", name: "Especialista em Manutenção em Eletrônica de Potência", status: "Vendas ativas" },
+            { num: 52, id: "8386395", name: "Especialista em Manutenção em Placas Eletrônicas - Emac", status: "Vendas ativas" },
+            { num: 53, id: "8386645", name: "Especialista em Manutenção em Televisores LED e LCD 2.0", status: "Vendas ativas" },
+            { num: 54, id: "8449193", name: "ESPECIALISTA PREMIUM", status: "Vendas ativas" },
+            { num: 55, id: "8426037", name: "Gestão de Marketing e Assistência Técnica", status: "Vendas ativas" },
+            { num: 56, id: "8428642", name: "Inteligência Artificial na Manutenção Eletrônica", status: "Vendas ativas" },
+            { num: 57, id: "8436535", name: "Lógica de programação e linguagem C", status: "Em rascunho" },
+            { num: 58, id: "8436597", name: "Manual de análise e Substituição de MOSFET", status: "Em rascunho" },
+            { num: 59, id: "8428785", name: "Manuseio de Osciloscópio", status: "Vendas ativas" },
+            { num: 60, id: "8427227", name: "Manutenção de Amplificadores de Áudio Classe AB", status: "Vendas ativas" },
+            { num: 61, id: "8393764", name: "Manutenção em Fonte Usina", status: "Vendas ativas" },
+            { num: 62, id: "8428855", name: "Módulos de potência CLASS-D e Fontes Automotivas", status: "Vendas ativas" },
+            { num: 63, id: "8435565", name: "Procedimentos e Manutenção de Televisores (TV) - Na Prática", status: "Vendas ativas" },
+            { num: 64, id: "8435463", name: "Programação de microcontroladores PIC", status: "Vendas ativas" },
+            { num: 65, id: "8433940", name: "Programação e Leitura de Memórias FLASH e EEPROM", status: "Vendas ativas" },
+            { num: 66, id: "8434956", name: "Técnicas de Manutenção em Fontes de Televisores(TV) LED E LCD", status: "Vendas ativas" },
+            { num: 67, id: "8434812", name: "Técnicas de Reballing Solda BGA", status: "Vendas ativas" },
+            { num: 68, id: "8387686", name: "TMTD Técnicas de Manutenção por Testes de Dispositivos", status: "Vendas ativas" }
+        ];
+
+        // Dataset Greenn (58 Produtos)
+        const greennProducts = [
+            { num: 1, name: "Especialista em Manutenção em Inversores Solares", valor: "R$ 1.897,00", status: "Vendas ativas" },
+            { num: 2, name: "Manuseio de Osciloscópio", valor: "R$ 197,00", status: "Vendas ativas" },
+            { num: 3, name: "Eletrônica de Potência 1", valor: "R$ 99,70", status: "Vendas ativas" },
+            { num: 4, name: "Especialista em Manutenção em Esteiras de Academia", valor: "R$ 1.497,00", status: "Vendas ativas" },
+            { num: 5, name: "Especialista em Manutenção de Amplificadores de áudio 2.0", valor: "R$ 997,00", status: "Vendas ativas" },
+            { num: 6, name: "Especialista em Manutenção de Fontes Chaveadas 2.0", valor: "R$ 1.697,00", status: "Vendas ativas" },
+            { num: 7, name: "Livro + Videoaulas: Fontes Chaveadas - Análise e Procedimentos", valor: "R$ 697,00", status: "Vendas ativas" },
+            { num: 8, name: "ESPECIALISTA EM REPARO DE EQUIPAMENTOS ODONTO, ESTÉTICOS E HOSPITALARES", valor: "R$ 2.497,00", status: "Vendas ativas" },
+            { num: 9, name: "EMAC - Evolução do Método de Análise de Circuitos - Reparos", valor: "R$ 1.497,00", status: "Vendas ativas" },
+            { num: 10, name: "Especialista em Manutenção em Televisores LED e LCD 2.0", valor: "R$ 1.497,00", status: "Vendas ativas" },
+            { num: 11, name: "Pacote Especialista em Eletrônica Analógica, Digital, Potência e Reparos", valor: "R$ 2.497,00", status: "Vendas ativas" },
+            { num: 12, name: "Vitalício - Especialista Em Manutenção Em Inversores de Frequência", valor: "R$ 1.697,00", status: "Vendas ativas" },
+            { num: 13, name: "ESPECIALISTA EM MANUTENÇÃO DE TECNOLOGIA INVERTER", valor: "R$ 1.187,88", status: "Vendas ativas" },
+            { num: 14, name: "Curso Manutenção, Reparo + Instalação De Ar Condicionado", valor: "R$ 997,00", status: "Vendas ativas" },
+            { num: 15, name: "Conversores DC-DC Não Isolados", valor: "R$ 99,70", status: "Vendas ativas" },
+            { num: 16, name: "Análise DC Avançada", valor: "R$ 697,00", status: "Vendas ativas" },
+            { num: 17, name: "Webinar - EMAC - Evolução do Método de Análise de Circuitos", valor: "R$ 1.497,00", status: "Vendas ativas" },
+            { num: 18, name: "Webinar - Especialista em Manutenção de Amplificadores de Áudio", valor: "R$ 1.197,00", status: "Vendas ativas" },
+            { num: 19, name: "Webinar - Especialista em Manutenção de Fontes Chaveadas", valor: "R$ 1.697,00", status: "Vendas ativas" },
+            { num: 20, name: "WEBINAR - Especialista em Manutenção em Inversores Solares", valor: "R$ 1.897,00", status: "Vendas ativas" },
+            { num: 21, name: "WEBINAR - Especialista em Manutenção em Televisores LED e LCD", valor: "R$ 1.497,00", status: "Vendas ativas" },
+            { num: 22, name: "WEBINAR - Especialista Em Manutenção Em Inversores de Frequência", valor: "R$ 1.497,00", status: "Vendas ativas" },
+            { num: 23, name: "WEBINAR - ESPECIALISTA EM REPARO DE EQUIPAMENTOS ODONTO, ESTÉTICOS E HOSPITALARES", valor: "R$ 2.497,00", status: "Vendas ativas" },
+            { num: 24, name: "WEBINAR - ESPECIALISTA EM MANUTENÇÃO DE TECNOLOGIA INVERTER", valor: "R$ 1.997,00", status: "Vendas ativas" },
+            { num: 25, name: "WEBINAR - Livro + Videoaulas: Fontes Chaveadas - Análise e Procedimentos", valor: "R$ 697,00", status: "Vendas ativas" },
+            { num: 26, name: "Livro + Videoaulas: Fontes Chaveadas - Retificador PFC", valor: "R$ 397,00", status: "Vendas ativas" },
+            { num: 27, name: "WEBINAR - Livro + Videoaulas: Fontes Chaveadas - Retificador PFC", valor: "R$ 397,00", status: "Vendas ativas" },
+            { num: 28, name: "Livro + Videoaulas: Fontes Chaveadas - Topologia Flyback", valor: "R$ 397,00", status: "Vendas ativas" },
+            { num: 29, name: "WEBINAR - Livro + Videoaulas: Fontes Chaveadas - Topologia Flyback", valor: "R$ 397,00", status: "Vendas ativas" },
+            { num: 30, name: "Livro 1: Eletrônica de Potência - Semicondutores", valor: "R$ 397,00", status: "Vendas ativas" },
+            { num: 31, name: "WEBINAR - Livro 1: Eletrônica de Potência - Semicondutores", valor: "R$ 397,00", status: "Vendas ativas" },
+            { num: 32, name: "Livro 2: Eletrônica de Potência - Retificadores", valor: "R$ 397,00", status: "Vendas ativas" },
+            { num: 33, name: "WEBNAR - Livro 2: Eletrônica de Potência - Retificadores", valor: "R$ 397,00", status: "Vendas ativas" },
+            { num: 34, name: "Livro 3: Eletrônica de potência - Conversores CC - CC", valor: "R$ 397,00", status: "Vendas ativas" },
+            { num: 35, name: "Cópia de Livro 3: Eletrônica de potência - Conversores CC - CC", valor: "R$ 397,00", status: "Vendas ativas" },
+            { num: 36, name: "Livro de Exercícios - Análise de Circuitos e Defeitos", valor: "R$ 397,00", status: "Vendas ativas" },
+            { num: 37, name: "WEBINAR - Livro de Exercícios - Análise de Circuitos e Defeitos", valor: "R$ 397,00", status: "Vendas ativas" },
+            { num: 38, name: "Especialista em Manutenção em Eletrônica de Potência", valor: "R$ 1.697,00", status: "Vendas ativas" },
+            { num: 39, name: "Combo de 5 Livros Impressos + Videoaulas", valor: "R$ 797,00", status: "Vendas ativas" },
+            { num: 40, name: "Manutenção em Placas de Lava e Seca", valor: "R$ 997,00", status: "Vendas ativas" },
+            { num: 41, name: "Manutenção em Fontes de Vídeo Games", valor: "R$ 997,00", status: "Vendas ativas" },
+            { num: 42, name: "Módulos de potência CLASS-D e Fontes Automotivas", valor: "R$ 997,00", status: "Vendas ativas" },
+            { num: 43, name: "Especialista em substituição de Engenharia reversa de Placas", valor: "R$ 997,00", status: "Vendas ativas" },
+            { num: 44, name: "Programação de Microcontroladores", valor: "R$ 997,00", status: "Vendas ativas" },
+            { num: 45, name: "Análise de Datasheets", valor: "R$ 697,00", status: "Vendas ativas" },
+            { num: 46, name: "Programação e Leitura De Memorias Flash e EEPROM", valor: "R$ 697,00", status: "Vendas ativas" },
+            { num: 47, name: "TMTD - Técnicas de Manutenção por Testes de Dispositivos", valor: "R$ 697,00", status: "Vendas ativas" },
+            { num: 48, name: "Curso Acelerador de Reparos Eletrônicos", valor: "R$ 697,00", status: "Vendas ativas" },
+            { num: 49, name: "Eletrônica para Iniciante - Analógica", valor: "R$ 397,00", status: "Vendas ativas" },
+            { num: 50, name: "Eletrônica Digital", valor: "R$ 397,00", status: "Em rascunho" },
+            { num: 51, name: "TESTE", valor: "R$ 1.000,00", status: "Vendas ativas" },
+            { num: 52, name: "Pós - Manutenção e Diagnóstico em Inversores Solares", valor: "R$ 3.997,00", status: "Vendas ativas" },
+            { num: 53, name: "Pós - Fontes Chaveadas", valor: "R$ 3.997,00", status: "Vendas ativas" },
+            { num: 54, name: "Pós - Fontes Chaveadas Vitalício", valor: "R$ 997,00", status: "Vendas ativas" },
+            { num: 55, name: "EMAC + FONTES – Especialização em Análise de Defeitos e Reparos", valor: "R$ 1.497,00", status: "Vendas ativas" },
+            { num: 56, name: "ENTRADA EXECUTIVO - Diagnóstico de Bancada: Imersão de Reparo", valor: "R$ 37,00", status: "Vendas ativas" },
+            { num: 57, name: "ENTRADA VIP - Diagnóstico de Bancada: Imersão de Reparo", valor: "R$ 87,00", status: "Vendas ativas" },
+            { num: 58, name: "Apostila de Procedimentos Práticos em Inversor Solar On-Grid", valor: "R$ 19,90", status: "Vendas ativas" }
+        ];
+
+        let currentPlatform = 'hotmart'; // 'hotmart' ou 'greenn'
+        let currentIndex = 0;
+        
+        // Conjuntos para salvar itens validados de forma independente
+        const validatedHotmart = new Set();
+        const validatedGreenn = new Set();
+
+        function getActiveDataset() {
+            return currentPlatform === 'hotmart' ? hotmartProducts : greennProducts;
+        }
+
+        function getActiveValidatedSet() {
+            return currentPlatform === 'hotmart' ? validatedHotmart : validatedGreenn;
+        }
+
+        // Alternar Plataforma (Hotmart / Greenn)
+        function switchPlatform(platform) {
+            if (currentPlatform === platform) return;
+            currentPlatform = platform;
+            currentIndex = 0;
+
+            const tabHotmart = document.getElementById('tabHotmart');
+            const tabGreenn = document.getElementById('tabGreenn');
+            const platformBadge = document.getElementById('platformBadge');
+
+            if (platform === 'hotmart') {
+                tabHotmart.className = 'tab-btn active px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 border border-transparent text-slate-400 hover:text-slate-200';
+                tabGreenn.className = 'tab-btn px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 border border-transparent text-slate-400 hover:text-slate-200';
+                if (platformBadge) {
+                    platformBadge.textContent = 'Hotmart';
+                    platformBadge.className = 'px-2.5 py-1 rounded-xl text-xs font-bold uppercase tracking-wider bg-orange-500/20 text-orange-400 border border-orange-500/30';
+                }
+            } else {
+                tabGreenn.className = 'tab-btn active px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 border border-transparent text-slate-400 hover:text-slate-200';
+                tabHotmart.className = 'tab-btn px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 border border-transparent text-slate-400 hover:text-slate-200';
+                if (platformBadge) {
+                    platformBadge.textContent = 'Greenn';
+                    platformBadge.className = 'px-2.5 py-1 rounded-xl text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                }
+            }
+
+            clearSearch();
+            loadProduct(0);
+            updateProgressStats();
+            showToast(`Plataforma alterada para ${platform.toUpperCase()}`, "layers", "indigo");
+        }
+
+        function loadProduct(index) {
+            const dataset = getActiveDataset();
+            if (index < 0 || index >= dataset.length) return;
+            
+            currentIndex = index;
+            const item = dataset[currentIndex];
+            const validatedSet = getActiveValidatedSet();
+
+            // Elementos DOM
+            const numEl = document.getElementById('displayNum');
+            const nameEl = document.getElementById('productNameInput');
+            const extraLabel = document.getElementById('extraInfoLabel');
+            const extraValue = document.getElementById('displayExtraValue');
+            const statusEl = document.getElementById('displayStatus');
+
+            if (numEl) numEl.textContent = item.num;
+            if (nameEl) nameEl.value = item.name;
+
+            // Renderiza informações secundárias dependendo da plataforma
+            if (currentPlatform === 'hotmart') {
+                if (extraLabel) extraLabel.textContent = 'ID:';
+                if (extraValue) extraValue.textContent = item.id;
+            } else {
+                if (extraLabel) extraLabel.textContent = 'Valor:';
+                if (extraValue) extraValue.textContent = item.valor;
+            }
+
+            // Formata o badge de Status
+            if (statusEl) {
+                const statusText = item.status || "Vendas ativas";
+                if (statusText.toLowerCase().includes('ativas')) {
+                    statusEl.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                    statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span>${statusText}`;
+                } else {
+                    statusEl.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                    statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span>${statusText}`;
+                }
+            }
+
+            // Estado do checkbox
+            const checkbox = document.getElementById('validationCheckbox');
+            if (checkbox) checkbox.checked = validatedSet.has(item.num);
+
+            // Badge do botão Próximo
+            const nextBadge = document.getElementById('nextItemBadge');
+            if (nextBadge) {
+                if (currentIndex + 1 < dataset.length) {
+                    nextBadge.textContent = `#${dataset[currentIndex + 1].num}`;
+                } else {
+                    nextBadge.textContent = 'Fim';
+                }
+            }
+
+            resetCopyButton();
+        }
+
+        function copyToClipboard() {
+            const inputEl = document.getElementById('productNameInput');
+            const copyBtnText = document.getElementById('copyBtnText');
+            const copyBtn = document.getElementById('copyBtn');
+
+            if (!inputEl) return;
+
+            inputEl.select();
+            
+            try {
+                document.execCommand('copy');
+                if (copyBtnText) copyBtnText.textContent = 'Copiado!';
+                if (copyBtn) {
+                    copyBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
+                    copyBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
+                }
+                setTimeout(resetCopyButton, 2000);
+            } catch (err) {
+                if (copyBtnText) copyBtnText.textContent = 'Erro ao copiar';
+            }
+        }
+
+        function resetCopyButton() {
+            const copyBtnText = document.getElementById('copyBtnText');
+            const copyBtn = document.getElementById('copyBtn');
+            if (copyBtnText) copyBtnText.textContent = 'Copiar Nome';
+            if (copyBtn) {
+                copyBtn.className = 'absolute right-3 bottom-3 glow-button bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 transition shadow-lg shadow-indigo-600/30 active:scale-95';
+            }
+        }
+
+        function toggleValidationStatus() {
+            const dataset = getActiveDataset();
+            const currentNum = dataset[currentIndex].num;
+            const validatedSet = getActiveValidatedSet();
+            const checkbox = document.getElementById('validationCheckbox');
+            
+            if (checkbox && checkbox.checked) {
+                validatedSet.add(currentNum);
+            } else {
+                validatedSet.delete(currentNum);
+            }
+
+            updateProgressStats();
+        }
+
+        function selectAllItems() {
+            const dataset = getActiveDataset();
+            const validatedSet = getActiveValidatedSet();
+            dataset.forEach(item => validatedSet.add(item.num));
+            
+            const checkbox = document.getElementById('validationCheckbox');
+            if (checkbox) checkbox.checked = true;
+            updateProgressStats();
+            showToast(`Todos os ${dataset.length} produtos de ${currentPlatform.toUpperCase()} marcados!`, "check-circle", "emerald");
+        }
+
+        function unselectAllItems() {
+            const validatedSet = getActiveValidatedSet();
+            validatedSet.clear();
+            const checkbox = document.getElementById('validationCheckbox');
+            if (checkbox) checkbox.checked = false;
+            updateProgressStats();
+            showToast(`Todos os produtos de ${currentPlatform.toUpperCase()} desmarcados!`, "rotate-ccw", "rose");
+        }
+
+        // Toast Feedback System
+        function showToast(message, iconName = "info", color = "indigo") {
+            const toast = document.getElementById('toastNotification');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            const iconContainer = document.getElementById('toastIconContainer');
+
+            if (!toast || !toastMsg) return;
+
+            toastMsg.textContent = message;
+            if (toastIcon) toastIcon.setAttribute('data-lucide', iconName);
+            
+            if (iconContainer) {
+                if (color === "emerald") {
+                    iconContainer.className = "p-1 rounded-lg bg-emerald-500/20 text-emerald-400";
+                } else if (color === "rose") {
+                    iconContainer.className = "p-1 rounded-lg bg-rose-500/20 text-rose-400";
+                } else {
+                    iconContainer.className = "p-1 rounded-lg bg-indigo-500/20 text-indigo-400";
+                }
+            }
+
+            if (window.lucide) window.lucide.createIcons();
+
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        // Atualização dos indicadores globais de progresso
+        function updateProgressStats() {
+            const dataset = getActiveDataset();
+            const validatedSet = getActiveValidatedSet();
+            const total = dataset.length;
+            const count = validatedSet.size;
+            const percentage = Math.round((count / total) * 100);
+
+            const countEl = document.getElementById('validatedCount');
+            const totalEl = document.getElementById('totalPlatformCount');
+            const pctEl = document.getElementById('percentageText');
+            const barEl = document.getElementById('topProgressBar');
+
+            if (countEl) countEl.textContent = count;
+            if (totalEl) totalEl.textContent = total;
+            if (pctEl) pctEl.textContent = `${percentage}%`;
+            if (barEl) barEl.style.width = `${percentage}%`;
+        }
+
+        function nextItem() {
+            const dataset = getActiveDataset();
+            if (currentIndex < dataset.length - 1) {
+                loadProduct(currentIndex + 1);
+            }
+        }
+
+        function previousItem() {
+            if (currentIndex > 0) {
+                loadProduct(currentIndex - 1);
+            }
+        }
+
+        function onSearchInput() {
+            const searchInput = document.getElementById('searchInput');
+            if (!searchInput) return;
+
+            const query = searchInput.value.trim().toLowerCase();
+            const resultsContainer = document.getElementById('searchResults');
+            const clearBtn = document.getElementById('clearSearchBtn');
+            const dataset = getActiveDataset();
+            const validatedSet = getActiveValidatedSet();
+
+            if (!query) {
+                if (resultsContainer) resultsContainer.classList.add('hidden');
+                if (clearBtn) clearBtn.classList.add('hidden');
+                return;
+            }
+
+            if (clearBtn) clearBtn.classList.remove('hidden');
+
+            const matches = dataset.filter(item => {
+                const matchNum = item.num.toString() === query || `${item.num}º` === query || `${item.num}` === query;
+                const matchName = item.name.toLowerCase().includes(query);
+                const matchExtra = currentPlatform === 'hotmart' ? item.id.includes(query) : item.valor.toLowerCase().includes(query);
+                return matchNum || matchName || matchExtra;
+            });
+
+            if (resultsContainer) {
+                if (matches.length > 0) {
+                    resultsContainer.innerHTML = '';
+                    matches.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'p-3.5 hover:bg-indigo-500/10 cursor-pointer flex justify-between items-center transition group';
+                        
+                        const isValidated = validatedSet.has(item.num);
+                        const checkIcon = isValidated ? `<span class="text-emerald-400 text-xs font-semibold flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Validado</span>` : '';
+                        const extraBadge = currentPlatform === 'hotmart' ? `ID: ${item.id}` : `${item.valor}`;
+
+                        div.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-xs font-bold border border-slate-700">#${item.num}</span>
+                                <span class="text-sm font-medium text-slate-200 group-hover:text-indigo-300 transition">${item.name}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ${checkIcon}
+                                <span class="text-xs font-mono text-slate-400 bg-slate-900/50 px-2 py-1 rounded">${extraBadge}</span>
+                            </div>
+                        `;
+                        div.onclick = () => {
+                            loadProduct(item.num - 1);
+                            resultsContainer.classList.add('hidden');
+                            searchInput.value = '';
+                            if (clearBtn) clearBtn.classList.add('hidden');
+                        };
+                        resultsContainer.appendChild(div);
+                    });
+                    resultsContainer.classList.remove('hidden');
+                    if (window.lucide) window.lucide.createIcons();
+                } else {
+                    resultsContainer.innerHTML = `<div class="p-4 text-xs text-slate-400 text-center">Nenhum produto encontrado em ${currentPlatform.toUpperCase()}.</div>`;
+                    resultsContainer.classList.remove('hidden');
+                }
+            }
+        }
+
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const resultsContainer = document.getElementById('searchResults');
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            if (searchInput) searchInput.value = '';
+            if (resultsContainer) resultsContainer.classList.add('hidden');
+            if (clearBtn) clearBtn.classList.add('hidden');
+        }
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+
+            if (e.key === 'ArrowRight') {
+                nextItem();
+            } else if (e.key === 'ArrowLeft') {
+                previousItem();
+            }
+        });
+
+        // Click outside search listener
+        document.addEventListener('click', (e) => {
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            if (searchInput && searchResults && !searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.add('hidden');
+            }
+        });
+
+        // Initialize App
+        window.onload = function() {
+            if (window.lucide) window.lucide.createIcons();
+            loadProduct(0);
+            updateProgressStats();
+        };
+    </script>
+</body>
+</html>
