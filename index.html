@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validador Pro - Hotmart & Greenn</title>
+    <title>Validador Pro - Hotmart, Greenn & TMB</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -118,11 +118,11 @@
             </div>
 
             <!-- Platform Switcher Tabs -->
-            <div class="flex items-center p-1 bg-slate-950/70 rounded-xl border border-slate-800">
+            <div class="flex items-center p-1 bg-slate-950/70 rounded-xl border border-slate-800 gap-1">
                 <button 
                     id="tabHotmart"
                     onclick="switchPlatform('hotmart')" 
-                    class="tab-btn active px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 border border-transparent text-slate-400 hover:text-slate-200"
+                    class="tab-btn active px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200"
                 >
                     <span class="w-2 h-2 rounded-full bg-orange-500"></span>
                     Hotmart (68)
@@ -130,10 +130,18 @@
                 <button 
                     id="tabGreenn"
                     onclick="switchPlatform('greenn')" 
-                    class="tab-btn px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 border border-transparent text-slate-400 hover:text-slate-200"
+                    class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200"
                 >
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                     Greenn (58)
+                </button>
+                <button 
+                    id="tabTmb"
+                    onclick="switchPlatform('tmb')" 
+                    class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200"
+                >
+                    <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                    TMB (92)
                 </button>
             </div>
 
@@ -184,7 +192,7 @@
                     type="text" 
                     id="searchInput"
                     oninput="onSearchInput()"
-                    placeholder="Buscar na plataforma ativa por Número (ex: 12), Nome ou Código/Valor..." 
+                    placeholder="Buscar na plataforma ativa por Número (ex: 12), Nome ou Valor..." 
                     class="w-full pl-12 pr-10 py-3.5 rounded-2xl glass-input text-sm text-slate-100 placeholder-slate-400 focus:outline-none transition shadow-lg"
                     autocomplete="off"
                 >
@@ -217,7 +225,7 @@
                     </span>
                 </div>
 
-                <!-- Extra Info Display (ID for Hotmart or Valor for Greenn) -->
+                <!-- Extra Info Display -->
                 <div id="extraInfoContainer" class="flex items-center gap-2">
                     <div id="displayStatus" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         <span class="w-2 h-2 rounded-full bg-emerald-400"></span>Vendas ativas
@@ -329,7 +337,7 @@
 
     <!-- Footer -->
     <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-800/50">
-        Validador Pro &copy; 2026 &bull; Hotmart & Greenn Catalog Management
+        Validador Pro &copy; 2026 &bull; Hotmart, Greenn & TMB Catalog Management
     </footer>
 
     <!-- Firebase SDK Imports & Storage Logic -->
@@ -356,7 +364,6 @@
             window.loadValidationStateFromLocalStorage();
 
             try {
-                // Autenticação anônima permite ler e escrever sem login visual
                 await signInAnonymously(auth);
 
                 window.firestoreDb = db;
@@ -365,15 +372,16 @@
 
                 const docRef = doc(db, 'catalogo', 'validacoes');
 
-                // Ouve mudanças no banco em tempo real (Sincroniza todas as janelas/navegadores)
                 onSnapshot(docRef, (snap) => {
                     if (snap.exists()) {
                         const data = snap.data();
                         validatedHotmart.clear();
                         validatedGreenn.clear();
+                        validatedTmb.clear();
 
                         if (Array.isArray(data.hotmart)) data.hotmart.forEach(num => validatedHotmart.add(num));
                         if (Array.isArray(data.greenn)) data.greenn.forEach(num => validatedGreenn.add(num));
+                        if (Array.isArray(data.tmb)) data.tmb.forEach(num => validatedTmb.add(num));
 
                         if (typeof updateProgressStats === 'function') updateProgressStats();
                         if (typeof loadProduct === 'function' && typeof currentIndex !== 'undefined') loadProduct(currentIndex);
@@ -416,7 +424,7 @@
             { num: 23, id: "8429312", name: "Programação de microcontroladores e ESP32", status: "Vendas ativas" },
             { num: 24, id: "8435225", name: "Reparos na prática de Fontes Chaveadas", status: "Vendas ativas" },
             { num: 25, id: "8435060", name: "Semicondutores de Alta Potência", status: "Vendas ativas" },
-            { num: 26, id: "8434723", name: "Técnologias aplicadas em placas principais de televisores", status: "Vendas ativas" },
+            { num: 26, id: "8434723", name: "Técnologias applied em placas principais de televisores", status: "Vendas ativas" },
             { num: 27, id: "8426199", name: "Acelerador de Reparos Eletrônicos", status: "Vendas ativas" },
             { num: 28, id: "8389111", name: "Acesso 01 Ano - Especialista em Manutenção de Amplificadores de Áudio", status: "Vendas ativas" },
             { num: 29, id: "8389107", name: "Acesso 02 Anos - Especialista em Manutenção de Amplificadores de áudio 2.0", status: "Vendas ativas" },
@@ -523,31 +531,131 @@
             { num: 58, name: "Apostila de Procedimentos Práticos em Inversor Solar On-Grid", valor: "R$ 19,90", status: "Vendas ativas" }
         ];
 
-        let currentPlatform = 'hotmart'; // 'hotmart' ou 'greenn'
+        // Dataset TMB (92 Produtos extraídos do arquivo produtos_TMB.txt)[cite: 2]
+        const tmbProducts = [
+            { num: 1, name: "EMAC + FONTES 2026", valor: "R$ 1.835,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 2, name: "Pós - Fontes Chaveadas Vitalício", valor: "R$ 870,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 3, name: "Pós - Manutenção e Diagnóstico em Inversores Solares", valor: "R$ 3.997,00", status: "Ativos", integracao: "Integrado" },
+            { num: 4, name: "Pós - Fontes Chaveadas", valor: "R$ 3.997,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 5, name: "Manuseio de Osciloscópio", valor: "R$ 397,00", status: "Ativos", integracao: "Integrado" },
+            { num: 6, name: "Eletrônica Digital", valor: "R$ 397,00", status: "Ativos", integracao: "Integrado" },
+            { num: 7, name: "Eletrônica para Iniciantes", valor: "R$ 397,00", status: "Ativos", integracao: "Integrado" },
+            { num: 8, name: "Acelerador de Reparos + Instrumentação", valor: "R$ 697,00", status: "Ativos", integracao: "Integrado" },
+            { num: 9, name: "TMTD Testes de Dispositivos sem Multímetro", valor: "R$ 697,00", status: "Ativos", integracao: "Integrado" },
+            { num: 10, name: "Leitura e Gravação de Memórias", valor: "R$ 697,00", status: "Ativos", integracao: "Integrado" },
+            { num: 11, name: "Análise de Datasheet", valor: "R$ 697,00", status: "Ativos", integracao: "Integrado" },
+            { num: 12, name: "Programação de Microcontroladores", valor: "R$ 997,00", status: "Ativos", integracao: "Integrado" },
+            { num: 13, name: "Manutenção em Módulos Automotivos", valor: "R$ 997,00", status: "Ativos", integracao: "Integrado" },
+            { num: 14, name: "Manutenção em Fontes de Games", valor: "R$ 997,00", status: "Ativos", integracao: "Integrado" },
+            { num: 15, name: "Manutenção em Placas de Lava e Seca", valor: "R$ 997,00", status: "Ativos", integracao: "Integrado" },
+            { num: 16, name: "Eletrônica de Potência", valor: "R$ 1.697,00", status: "Ativos", integracao: "Integrado" },
+            { num: 17, name: "Engenharia Reversa de PCB", valor: "R$ 997,00", status: "Ativos", integracao: "Integrado" },
+            { num: 18, name: "Combo de 5 Livros Impressos + Videoaulas", valor: "R$ 0,00", status: "Em Analise", integracao: "Não integrado" },
+            { num: 19, name: "WEBINAR - Livro de Exercicios - Análise de circuitos e Defeitos", valor: "R$ 797,00", status: "Em Análise", integracao: "Não integrado" },
+            { num: 20, name: "Livro de Exercicios - Análise de circuitos e Defeitos", valor: "R$ 597,00", status: "Ativos", integracao: "Integrado" },
+            { num: 21, name: "WEBINAR - Livro 3: Eletrônica de potência - Conversores CC - CC", valor: "R$ 797,00", status: "Em Análise", integracao: "Não integrado" },
+            { num: 22, name: "Livro 3: Eletrônica de potência - Conversores CC - CC", valor: "R$ 597,00", status: "Ativos", integracao: "Integrado" },
+            { num: 23, name: "WEBINAR - Livro 2: Eletrônica de Potência - Retificadores", valor: "R$ 797,00", status: "Em Análise", integracao: "Não integrado" },
+            { num: 24, name: "Livro 2: Eletrônica de Potência - Retificadores", valor: "R$ 597,00", status: "Ativos", integracao: "Integrado" },
+            { num: 25, name: "WEBINAR - Livro 1: Eletrônica de Potência - Semicondutores", valor: "R$ 797,00", status: "Ativos", integracao: "Integrado" },
+            { num: 26, name: "Livro 1: Eletrônica de Potência - Semicondutores", valor: "R$ 597,00", status: "Ativos", integracao: "Integrado" },
+            { num: 27, name: "WEBINAR - Livro + Videoaulas: Fontes Chaveadas - Retificador PFC Monofásico", valor: "R$ 797,00", status: "Ativos", integracao: "Integrado" },
+            { num: 28, name: "Livro + Videoaulas: Fontes Chaveadas - Retificador PFC Monofásico", valor: "R$ 597,00", status: "Ativos", integracao: "Integrado" },
+            { num: 29, name: "WEBINAR - Livro Fontes Chaveadas - Analise e procedimentos de manutenção em topologia flyback", valor: "R$ 1.097,00", status: "Ativos", integracao: "Integrado" },
+            { num: 30, name: "WEBINAR - ESPECIALISTA EM REPARO DE EQUIPAMENTOS ODONTO, ESTÉTICO E FISIOTERAPEUTICO", valor: "R$ 2.697,00", status: "Ativos", integracao: "Integrado" },
+            { num: 31, name: "WEBINAR - Especialista em Manutenção Industrial: Inversor de Frequência e Soft-Starter", valor: "R$ 1.997,00", status: "Ativos", integracao: "Integrado" },
+            { num: 32, name: "Análise DC Avançada", valor: "R$ 697,00", status: "Ativos", integracao: "Integrado" },
+            { num: 33, name: "Análise e Reparos de Inversores ON-GRID", valor: "R$ 997,00", status: "Ativos", integracao: "Integrado" },
+            { num: 34, name: "ESPECIALISTA EM REPARO DE EQUIPAMENTOS ODONTO, ESTÉTICO E FISIOTERAPEUTICO", valor: "R$ 2.497,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 35, name: "Especialista em Manutenção em Fontes Chaveadas (NOVO)", valor: "R$ 1.997,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 36, name: "Especialista Em Manutenção Em Inversores Solares (NOVO)", valor: "R$ 1.797,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 37, name: "ESPECIALISTA EM MANUTENÇÃO EM ESTEIRAS DE ACADEMIA", valor: "R$ 1.640,80", status: "Ativos", integracao: "Interrompido" },
+            { num: 38, name: "IMERSÃO 3X", valor: "R$ 297,00", status: "Ativos", integracao: "Integrado" },
+            { num: 39, name: "Curso Acelerador de Reparos em Ar inverter - DOWSELL", valor: "R$ 770,60", status: "Ativos", integracao: "Integrado" },
+            { num: 40, name: "Acelerador de Faturamento com Ar Inverter (Instalação)", valor: "R$ 1.737,50", status: "Ativos", integracao: "Integrado" },
+            { num: 41, name: "EXPERT EM MANUTENÇÃO DE FONTES CHAVEADAS", valor: "R$ 797,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 42, name: "teste", valor: "R$ 0,00", status: "Reprovado", integracao: "Não integrado" },
+            { num: 43, name: "MENTORIA - Programação de Aceleração de Resultados", valor: "R$ 10.200,00", status: "Ativos", integracao: "Integrado" },
+            { num: 44, name: "INSTALAÇÃO DE AR CONDICIONADO SPLIT", valor: "R$ 1.697,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 45, name: "COMBO TODOS ESPECIALISTAS", valor: "R$ 5.000,00", status: "Reprovado", integracao: "Não integrado" },
+            { num: 46, name: "COMBO CURSOS - Low ticket", valor: "R$ 997,00", status: "Ativos", integracao: "Integrado" },
+            { num: 47, name: "TECNOLOGIAS INVERTER - LAVA E SECA", valor: "R$ 1.200,00", status: "Ativos", integracao: "Integrado" },
+            { num: 48, name: "TECNOLOGIAS INVERTER - GELADEIRAS", valor: "R$ 1.200,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 49, name: "TECNOLOGIAS INVERTER - AR INVERTER", valor: "R$ 1.200,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 50, name: "INVERSOR DE FREQUÊNCIA - SOFT START", valor: "R$ 1.197,00", status: "Reprovado", integracao: "Integrado" },
+            { num: 51, name: "Inteligência Artificial na Manutenção Eletrônica", valor: "R$ 1.197,00", status: "Reprovado", integracao: "Integrado" },
+            { num: 52, name: "3 Livros Eletrônica de Potência", valor: "R$ 797,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 53, name: "TMTD + Imersão", valor: "R$ 1.897,00", status: "Ativos", integracao: "Integrado" },
+            { num: 54, name: "produto teste", valor: "R$ 1.000,00", status: "Expirado", integracao: "Não integrado" },
+            { num: 55, name: "Técnicas Avançadas de Testes de Componentes - Novo TMTD", valor: "R$ 1.297,00", status: "Ativos", integracao: "Integrado" },
+            { num: 56, name: "WEBINAR - Especialista em Manutenção em Equipamento com Tecnologias Inverter", valor: "R$ 2.614,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 57, name: "Especialista em Eletrônica de Potência.", valor: "R$ 1.497,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 58, name: "WEBINAR - Especialista em Manutenção de Inversores Solares.", valor: "R$ 1.497,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 59, name: "Webinar - Especialista em Manutenção de Fontes Chaveadas 2.0", valor: "R$ 1.297,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 60, name: "Especialista em Manutenção de Amplificadores de Áudio 2.0", valor: "R$ 1.697,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 61, name: "Especialista em Manutenção de Televisores LED e LCD + Amplificadores, Nobreaks e Microondas", valor: "R$ 1.297,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 62, name: "WEBINAR - Especialista em Manutenção em Televisores LED e LCD 2.0", valor: "R$ 0,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 63, name: "Especialista em Manutenção de Mini System", valor: "R$ 997,00", status: "Ativos", integracao: "Integrado" },
+            { num: 64, name: "Manutenção em Máquinas Inversoras de Solda", valor: "R$ 697,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 65, name: "Especialista em Manutenção de Fontes Chaveadas 1.0 + 2.0", valor: "R$ 1.297,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 66, name: "Imersão em técnicas de análise de defeitos", valor: "R$ 1.497,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 67, name: "Técnicas de Manutenção em Fontes de Televisores(TV) LED E LCD", valor: "R$ 697,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 68, name: "Eletrônica Inicial", valor: "R$ 497,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 69, name: "ESPECIALISTA EM ELETRÔNICA DE POTÊNCIA", valor: "R$ 997,00", status: "Ativos", integracao: "Integrado" },
+            { num: 70, name: "livros eletronica de potencia", valor: "R$ 737,00", status: "Ativos", integracao: "Integrado" },
+            { num: 71, name: "Combo: Fontes Chaveadas Topologia + Retificador PFC Monofásico", valor: "R$ 597,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 72, name: "EMAC - Evcolução do Método de Analise de Circuitos 1.0", valor: "R$ 1.297,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 73, name: "EMAC - Especialista em Manutenção em Placas Eletrônicas", valor: "R$ 1.697,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 74, name: "Especialista em Manutenção de Inversores Solares + Livro: Fontes Chaveadas Topologia + Livro 1: Eletrônica de Potência - Semicondutores", valor: "R$ 1.861,00", status: "Ativos", integracao: "Integrado" },
+            { num: 75, name: "Técnicas de Manutenção em Nobreaks", valor: "R$ 597,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 76, name: "Curso Avançado Programação e Leitura De Memorias Flash e EEPROM", valor: "R$ 997,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 77, name: "ESPECIALISTA EM MANUTENÇÃO DE MAQUINAS LAVA E SECA - ELETROMECÂNICA E ELETRÔNICA", valor: "R$ 1.497,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 78, name: "Manutenção em Fontes de Video Games + Eletronica para Iniciantes", valor: "R$ 597,00", status: "Ativos", integracao: "Integrado" },
+            { num: 79, name: "Manutenção de Placas de Ar Inverter + Eletronica para Iniciantes", valor: "R$ 597,00", status: "Ativos", integracao: "Integrado" },
+            { num: 80, name: "Especialista em Manutenção de Placas de Ar Inverter", valor: "R$ 597,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 81, name: "Especialista em Manutenção de Fontes Chaveadas 2.0", valor: "R$ 2.497,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 82, name: "Livro Fontes Chaveadas - Analise e procedimentos de manutenção em topologia flyback", valor: "R$ 897,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 83, name: "Especialista em Manutenção de Televisores LED e LCD 2.0", valor: "R$ 2.497,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 84, name: "Tecnologias Inverter 2.0", valor: "R$ 2.497,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 85, name: "Especialista em Manutenção de Inversores Solares", valor: "R$ 2.497,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 86, name: "Tecnologias Inverter", valor: "R$ 1.297,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 87, name: "Webinar - Especialista em Manutenção de Amplificadores de áudio 2.0", valor: "R$ 0,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 88, name: "Especialista em Manutenção Industrial: Inversor de Frequência e Soft-Starter", valor: "R$ 0,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 89, name: "ESPECIALISTA EM MANUTENÇÃO DE AMPLIFICADORES DE ÁUDIO - PRATA", valor: "R$ 0,00", status: "Ativos", integracao: "Integrado" },
+            { num: 90, name: "ESPECIALISTA EM MANUTENÇÃO DE TELEVISORES - BRONZE", valor: "R$ 697,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 91, name: "ESPECIALISTA EM MANUTENÇÃO DE FONTES CHAVEADAS", valor: "R$ 997,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 92, name: "Webinar - EMAC - Evolução do Metodo de Análise de Circuitos - Reparador de Placas", valor: "R$ 1.697,00", status: "Ativos", integracao: "Interrompido" }
+        ];
+
+        let currentPlatform = 'hotmart'; // 'hotmart', 'greenn' ou 'tmb'
         let currentIndex = 0;
         
         // Conjuntos para salvar itens validados de forma independente
         const validatedHotmart = new Set();
         const validatedGreenn = new Set();
+        const validatedTmb = new Set();
 
         function saveValidationState() {
             const hotmartArr = Array.from(validatedHotmart);
             const greennArr = Array.from(validatedGreenn);
+            const tmbArr = Array.from(validatedTmb);
 
             // Salva localmente
             try {
                 localStorage.setItem('validador_hotmart', JSON.stringify(hotmartArr));
                 localStorage.setItem('validador_greenn', JSON.stringify(greennArr));
+                localStorage.setItem('validador_tmb', JSON.stringify(tmbArr));
             } catch (e) {
                 console.warn('Erro ao salvar no navegador:', e);
             }
 
-            // Salva no documento fixo do Firestore para sincronizar em qualquer lugar
+            // Salva no documento fixo do Firestore
             if (window.firestoreDb && window.setDocFunc && window.docFunc) {
                 const docRef = window.docFunc(window.firestoreDb, 'catalogo', 'validacoes');
                 window.setDocFunc(docRef, {
                     hotmart: hotmartArr,
                     greenn: greennArr,
+                    tmb: tmbArr,
                     updatedAt: new Date().toISOString()
                 }, { merge: true }).catch(err => console.error("Erro ao salvar no Firestore:", err));
             }
@@ -565,6 +673,11 @@
                     const parsed = JSON.parse(g);
                     if (Array.isArray(parsed)) parsed.forEach(num => validatedGreenn.add(num));
                 }
+                const t = localStorage.getItem('validador_tmb');
+                if (t) {
+                    const parsed = JSON.parse(t);
+                    if (Array.isArray(parsed)) parsed.forEach(num => validatedTmb.add(num));
+                }
             } catch (e) {
                 console.warn('Erro ao carregar do navegador:', e);
             }
@@ -572,14 +685,18 @@
         window.loadValidationStateFromLocalStorage = loadValidationStateFromLocalStorage;
 
         function getActiveDataset() {
-            return currentPlatform === 'hotmart' ? hotmartProducts : greennProducts;
+            if (currentPlatform === 'hotmart') return hotmartProducts;
+            if (currentPlatform === 'greenn') return greennProducts;
+            return tmbProducts;
         }
 
         function getActiveValidatedSet() {
-            return currentPlatform === 'hotmart' ? validatedHotmart : validatedGreenn;
+            if (currentPlatform === 'hotmart') return validatedHotmart;
+            if (currentPlatform === 'greenn') return validatedGreenn;
+            return validatedTmb;
         }
 
-        // Alternar Plataforma (Hotmart / Greenn)
+        // Alternar Plataforma (Hotmart / Greenn / TMB)
         function switchPlatform(platform) {
             if (currentPlatform === platform) return;
             currentPlatform = platform;
@@ -587,21 +704,30 @@
 
             const tabHotmart = document.getElementById('tabHotmart');
             const tabGreenn = document.getElementById('tabGreenn');
+            const tabTmb = document.getElementById('tabTmb');
             const platformBadge = document.getElementById('platformBadge');
 
+            tabHotmart.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200';
+            tabGreenn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200';
+            tabTmb.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200';
+
             if (platform === 'hotmart') {
-                tabHotmart.className = 'tab-btn active px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 border border-transparent text-slate-400 hover:text-slate-200';
-                tabGreenn.className = 'tab-btn px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 border border-transparent text-slate-400 hover:text-slate-200';
+                tabHotmart.className = 'tab-btn active px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200';
                 if (platformBadge) {
                     platformBadge.textContent = 'Hotmart';
                     platformBadge.className = 'px-2.5 py-1 rounded-xl text-xs font-bold uppercase tracking-wider bg-orange-500/20 text-orange-400 border border-orange-500/30';
                 }
-            } else {
-                tabGreenn.className = 'tab-btn active px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 border border-transparent text-slate-400 hover:text-slate-200';
-                tabHotmart.className = 'tab-btn px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 border border-transparent text-slate-400 hover:text-slate-200';
+            } else if (platform === 'greenn') {
+                tabGreenn.className = 'tab-btn active px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200';
                 if (platformBadge) {
                     platformBadge.textContent = 'Greenn';
                     platformBadge.className = 'px-2.5 py-1 rounded-xl text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                }
+            } else {
+                tabTmb.className = 'tab-btn active px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200';
+                if (platformBadge) {
+                    platformBadge.textContent = 'TMB';
+                    platformBadge.className = 'px-2.5 py-1 rounded-xl text-xs font-bold uppercase tracking-wider bg-purple-500/20 text-purple-400 border border-purple-500/30';
                 }
             }
 
@@ -629,7 +755,7 @@
             if (numEl) numEl.textContent = item.num;
             if (nameEl) nameEl.value = item.name;
 
-            // Renderiza informações secundárias
+            // Renderiza informações secundárias dependendo da plataforma
             if (currentPlatform === 'hotmart') {
                 if (extraLabel) extraLabel.textContent = 'ID:';
                 if (extraValue) extraValue.textContent = item.id;
@@ -640,8 +766,9 @@
 
             // Formata o badge de Status
             if (statusEl) {
-                const statusText = item.status || "Vendas ativas";
-                if (statusText.toLowerCase().includes('ativas')) {
+                const statusText = item.status || "Ativos";
+                const isAtivo = statusText.toLowerCase().includes('ativo');
+                if (isAtivo) {
                     statusEl.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
                     statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span>${statusText}`;
                 } else {
