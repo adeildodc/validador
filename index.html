@@ -175,23 +175,25 @@
                 <div class="text-indigo-300 font-extrabold" id="percentageText">0%</div>
             </div>
 
-            <!-- Global Action Buttons -->
+            <!-- Global Action Buttons com Confirmação Tripla -->
             <div class="flex items-center gap-2">
                 <button 
-                    onclick="selectAllItems()" 
-                    title="Marcar todos os itens da plataforma ativa"
-                    class="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
+                    id="selectAllBtn"
+                    onclick="handleSelectAllClick()" 
+                    title="Marcar todos os itens da plataforma ativa (Requer 3 cliques)"
+                    class="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 min-w-[120px] justify-center"
                 >
                     <i data-lucide="check-check" class="w-3.5 h-3.5"></i>
-                    <span class="hidden sm:inline">Marcar Todos</span>
+                    <span id="selectAllBtnText">Marcar Todos</span>
                 </button>
                 <button 
-                    onclick="unselectAllItems()" 
-                    title="Desmarcar todos os itens da plataforma ativa"
-                    class="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
+                    id="unselectAllBtn"
+                    onclick="handleUnselectAllClick()" 
+                    title="Desmarcar todos os itens da plataforma ativa (Requer 3 cliques)"
+                    class="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 min-w-[130px] justify-center"
                 >
                     <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                    <span>Desmarcar Todos</span>
+                    <span id="unselectAllBtnText">Desmarcar Todos</span>
                 </button>
             </div>
         </div>
@@ -647,12 +649,18 @@
             { num: 92, name: "Webinar - EMAC - Evolução do Metodo de Análise de Circuitos - Reparador de Placas", valor: "R$ 1.697,00", status: "Ativos", integracao: "Interrompido" }
         ];
 
-        let currentPlatform = 'hotmart'; // 'hotmart', 'greenn' ou 'tmb'
+        let currentPlatform = 'hotmart'; 
         let currentIndex = 0;
         
         const validatedHotmart = new Set();
         const validatedGreenn = new Set();
         const validatedTmb = new Set();
+
+        // Variáveis de Controle para Confirmação Tripla
+        let selectAllClicks = 0;
+        let selectAllTimer = null;
+        let unselectAllClicks = 0;
+        let unselectAllTimer = null;
 
         function saveValidationState() {
             const hotmartArr = Array.from(validatedHotmart);
@@ -713,11 +721,109 @@
             return validatedTmb;
         }
 
-        // Alternar Plataforma (Atualiza Temas Dinamicamente)
+        // Lógica de Confirmação Tripla - Marcar Todos
+        function handleSelectAllClick() {
+            const btn = document.getElementById('selectAllBtn');
+            const btnText = document.getElementById('selectAllBtnText');
+
+            selectAllClicks++;
+
+            if (selectAllClicks === 1) {
+                if (btnText) btnText.textContent = "Clique +2x";
+                if (btn) {
+                    btn.classList.remove('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/30');
+                    btn.classList.add('bg-amber-500/20', 'text-amber-300', 'border-amber-500/50');
+                }
+                selectAllTimer = setTimeout(resetSelectAllBtn, 3000);
+            } else if (selectAllClicks === 2) {
+                if (btnText) btnText.textContent = "Clique +1x!";
+                if (btn) {
+                    btn.classList.remove('bg-amber-500/20', 'text-amber-300', 'border-amber-500/50');
+                    btn.classList.add('bg-emerald-500', 'text-white', 'border-emerald-400', 'animate-bounce');
+                }
+            } else if (selectAllClicks >= 3) {
+                clearTimeout(selectAllTimer);
+                resetSelectAllBtn();
+                executeSelectAll();
+            }
+        }
+
+        function resetSelectAllBtn() {
+            selectAllClicks = 0;
+            const btn = document.getElementById('selectAllBtn');
+            const btnText = document.getElementById('selectAllBtnText');
+            if (btnText) btnText.textContent = "Marcar Todos";
+            if (btn) {
+                btn.className = "px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 min-w-[120px] justify-center";
+            }
+        }
+
+        function executeSelectAll() {
+            const dataset = getActiveDataset();
+            const validatedSet = getActiveValidatedSet();
+            dataset.forEach(item => validatedSet.add(item.num));
+            
+            const checkbox = document.getElementById('validationCheckbox');
+            if (checkbox) checkbox.checked = true;
+            saveValidationState();
+            updateProgressStats();
+            showToast(`Todos os ${dataset.length} produtos de ${currentPlatform.toUpperCase()} marcados!`, "check-circle", "emerald");
+        }
+
+        // Lógica de Confirmação Tripla - Desmarcar Todos
+        function handleUnselectAllClick() {
+            const btn = document.getElementById('unselectAllBtn');
+            const btnText = document.getElementById('unselectAllBtnText');
+
+            unselectAllClicks++;
+
+            if (unselectAllClicks === 1) {
+                if (btnText) btnText.textContent = "Clique +2x";
+                if (btn) {
+                    btn.classList.remove('bg-rose-500/10', 'text-rose-400', 'border-rose-500/30');
+                    btn.classList.add('bg-amber-500/20', 'text-amber-300', 'border-amber-500/50');
+                }
+                unselectAllTimer = setTimeout(resetUnselectAllBtn, 3000);
+            } else if (unselectAllClicks === 2) {
+                if (btnText) btnText.textContent = "Clique +1x!";
+                if (btn) {
+                    btn.classList.remove('bg-amber-500/20', 'text-amber-300', 'border-amber-500/50');
+                    btn.classList.add('bg-rose-600', 'text-white', 'border-rose-400', 'animate-bounce');
+                }
+            } else if (unselectAllClicks >= 3) {
+                clearTimeout(unselectAllTimer);
+                resetUnselectAllBtn();
+                executeUnselectAll();
+            }
+        }
+
+        function resetUnselectAllBtn() {
+            unselectAllClicks = 0;
+            const btn = document.getElementById('unselectAllBtn');
+            const btnText = document.getElementById('unselectAllBtnText');
+            if (btnText) btnText.textContent = "Desmarcar Todos";
+            if (btn) {
+                btn.className = "px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 min-w-[130px] justify-center";
+            }
+        }
+
+        function executeUnselectAll() {
+            const validatedSet = getActiveValidatedSet();
+            validatedSet.clear();
+            const checkbox = document.getElementById('validationCheckbox');
+            if (checkbox) checkbox.checked = false;
+            saveValidationState();
+            updateProgressStats();
+            showToast(`Todos os produtos de ${currentPlatform.toUpperCase()} desmarcados!`, "rotate-ccw", "rose");
+        }
+
         function switchPlatform(platform) {
             if (currentPlatform === platform) return;
             currentPlatform = platform;
             currentIndex = 0;
+
+            resetSelectAllBtn();
+            resetUnselectAllBtn();
 
             const body = document.getElementById('appBody');
             const tabHotmart = document.getElementById('tabHotmart');
@@ -916,28 +1022,6 @@
 
             saveValidationState();
             updateProgressStats();
-        }
-
-        function selectAllItems() {
-            const dataset = getActiveDataset();
-            const validatedSet = getActiveValidatedSet();
-            dataset.forEach(item => validatedSet.add(item.num));
-            
-            const checkbox = document.getElementById('validationCheckbox');
-            if (checkbox) checkbox.checked = true;
-            saveValidationState();
-            updateProgressStats();
-            showToast(`Todos os ${dataset.length} produtos de ${currentPlatform.toUpperCase()} marcados!`, "check-circle", "emerald");
-        }
-
-        function unselectAllItems() {
-            const validatedSet = getActiveValidatedSet();
-            validatedSet.clear();
-            const checkbox = document.getElementById('validationCheckbox');
-            if (checkbox) checkbox.checked = false;
-            saveValidationState();
-            updateProgressStats();
-            showToast(`Todos os produtos de ${currentPlatform.toUpperCase()} desmarcados!`, "rotate-ccw", "rose");
         }
 
         // Toast Feedback System
