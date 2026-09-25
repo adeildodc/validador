@@ -356,21 +356,26 @@
             window.loadValidationStateFromLocalStorage();
 
             try {
-                const userCred = await signInAnonymously(auth);
-                const userId = userCred.user.uid;
+                await signInAnonymously(auth);
 
                 window.firestoreDb = db;
-                window.firestoreUserId = userId;
                 window.docFunc = doc;
                 window.setDocFunc = setDoc;
 
-                const docRef = doc(db, 'users', userId, 'settings', 'validatedProducts');
+                // Documento fixo compartilhado para qualquer dispositivo/navegador
+                const docRef = doc(db, 'catalogo', 'validacoes');
                 const snap = await getDoc(docRef);
 
                 if (snap.exists()) {
                     const data = snap.data();
-                    if (Array.isArray(data.hotmart)) data.hotmart.forEach(num => validatedHotmart.add(num));
-                    if (Array.isArray(data.greenn)) data.greenn.forEach(num => validatedGreenn.add(num));
+                    if (Array.isArray(data.hotmart)) {
+                        validatedHotmart.clear();
+                        data.hotmart.forEach(num => validatedHotmart.add(num));
+                    }
+                    if (Array.isArray(data.greenn)) {
+                        validatedGreenn.clear();
+                        data.greenn.forEach(num => validatedGreenn.add(num));
+                    }
                     
                     if (typeof updateProgressStats === 'function') updateProgressStats();
                     if (typeof loadProduct === 'function' && typeof currentIndex !== 'undefined') loadProduct(currentIndex);
@@ -527,7 +532,7 @@
             const hotmartArr = Array.from(validatedHotmart);
             const greennArr = Array.from(validatedGreenn);
 
-            // Salva localmente (Garante persistência no navegador)
+            // Salva localmente (Garante persistência local)
             try {
                 localStorage.setItem('validador_hotmart', JSON.stringify(hotmartArr));
                 localStorage.setItem('validador_greenn', JSON.stringify(greennArr));
@@ -535,9 +540,9 @@
                 console.warn('Erro ao salvar no navegador:', e);
             }
 
-            // Salva na nuvem (Firestore) se disponível
-            if (window.firestoreDb && window.firestoreUserId && window.setDocFunc && window.docFunc) {
-                const docRef = window.docFunc(window.firestoreDb, 'users', window.firestoreUserId, 'settings', 'validatedProducts');
+            // Salva no documento fixo do Firestore para sincronizar em qualquer navegador/dispositivo
+            if (window.firestoreDb && window.setDocFunc && window.docFunc) {
+                const docRef = window.docFunc(window.firestoreDb, 'catalogo', 'validacoes');
                 window.setDocFunc(docRef, {
                     hotmart: hotmartArr,
                     greenn: greennArr,
