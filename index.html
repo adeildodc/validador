@@ -218,27 +218,27 @@
                 </div>
 
                 <!-- Extra Info Display (ID for Hotmart or Valor for Greenn) -->
-            <div id="extraInfoContainer" class="flex items-center gap-2">
-                <div id="displayStatus" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>Vendas ativas
-                </div>
-                <div class="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-900/60 px-3 py-1.5 rounded-xl border border-slate-800">
-                    <span id="extraInfoLabel">ID:</span> 
-                    <span id="displayExtraValue" class="font-mono font-bold text-slate-200">8433965</span>
-                    <button 
-                        id="copyExtraBtn"
-                        onclick="copyExtraToClipboard()" 
-                        title="Copiar Código / Valor"
-                        class="ml-1 px-2 py-0.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 text-[11px] font-semibold flex items-center gap-1 transition active:scale-95"
-                    >
-                        <i data-lucide="copy" class="w-3 h-3"></i>
-                        <span id="copyExtraBtnText">Copiar</span>
-                    </button>
+                <div id="extraInfoContainer" class="flex items-center gap-2">
+                    <div id="displayStatus" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>Vendas ativas
+                    </div>
+                    <div class="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-900/60 px-3 py-1.5 rounded-xl border border-slate-800">
+                        <span id="extraInfoLabel">ID:</span> 
+                        <span id="displayExtraValue" class="font-mono font-bold text-slate-200">8433965</span>
+                        <button 
+                            id="copyExtraBtn"
+                            onclick="copyExtraToClipboard()" 
+                            title="Copiar Código / Valor"
+                            class="ml-1 px-2 py-0.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 text-[11px] font-semibold flex items-center gap-1 transition active:scale-95"
+                        >
+                            <i data-lucide="copy" class="w-3 h-3"></i>
+                            <span id="copyExtraBtnText">Copiar</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Copiable Product Name Box -->
+            <!-- Copiable Product Name Box -->
             <div class="mb-6 relative">
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                     Nome do Produto (Campo Copiável)
@@ -335,49 +335,48 @@
     <!-- Firebase SDK Imports & Storage Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        const firebaseConfig = {
+            apiKey: "AIzaSyCQ4Zn0c2z4ogdSwBD364cvmm3NSkoBC6I",
+            authDomain: "joice-ac6ed.firebaseapp.com",
+            projectId: "joice-ac6ed",
+            storageBucket: "joice-ac6ed.firebasestorage.app",
+            messagingSenderId: "956744607142",
+            appId: "1:956744607142:web:865c5bf044ab91f1429b67",
+            measurementId: "G-5M2PDJR9KB"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
         window.initStorage = async function() {
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'validador-pro-app';
-            
-            // 1. Carrega primeiro do localStorage (funciona instantaneamente no GitHub Pages)
             window.loadValidationStateFromLocalStorage();
 
-            // 2. Se houver credenciais do Firebase no ambiente, sincroniza também em nuvem
-            if (typeof __firebase_config !== 'undefined') {
-                try {
-                    const firebaseConfig = JSON.parse(__firebase_config);
-                    const app = initializeApp(firebaseConfig);
-                    const auth = getAuth(app);
-                    const db = getFirestore(app);
+            try {
+                const userCred = await signInAnonymously(auth);
+                const userId = userCred.user.uid;
 
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
+                window.firestoreDb = db;
+                window.firestoreUserId = userId;
+                window.docFunc = doc;
+                window.setDocFunc = setDoc;
+
+                const docRef = doc(db, 'users', userId, 'settings', 'validatedProducts');
+                const snap = await getDoc(docRef);
+
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (Array.isArray(data.hotmart)) data.hotmart.forEach(num => validatedHotmart.add(num));
+                    if (Array.isArray(data.greenn)) data.greenn.forEach(num => validatedGreenn.add(num));
                     
-                    const userId = auth.currentUser?.uid || 'anonymous-user';
-                    window.firestoreDb = db;
-                    window.firestoreUserId = userId;
-                    window.firestoreAppId = appId;
-                    window.docFunc = doc;
-                    window.setDocFunc = setDoc;
-
-                    // Carrega do banco de dados em nuvem
-                    const docRef = doc(db, 'artifacts', appId, 'users', userId, 'settings', 'validatedProducts');
-                    const snap = await getDoc(docRef);
-                    if (snap.exists()) {
-                        const data = snap.data();
-                        if (Array.isArray(data.hotmart)) data.hotmart.forEach(num => validatedHotmart.add(num));
-                        if (Array.isArray(data.greenn)) data.greenn.forEach(num => validatedGreenn.add(num));
-                        if (typeof updateProgressStats === 'function') updateProgressStats();
-                        if (typeof loadProduct === 'function' && typeof currentIndex !== 'undefined') loadProduct(currentIndex);
-                    }
-                } catch (err) {
-                    console.warn("Sincronização em nuvem opcional não disponível:", err);
+                    if (typeof updateProgressStats === 'function') updateProgressStats();
+                    if (typeof loadProduct === 'function' && typeof currentIndex !== 'undefined') loadProduct(currentIndex);
                 }
+            } catch (err) {
+                console.warn("Erro ao sincronizar com o Firestore (usando fallback local):", err);
             }
         };
     </script>
@@ -528,7 +527,7 @@
             const hotmartArr = Array.from(validatedHotmart);
             const greennArr = Array.from(validatedGreenn);
 
-            // Salva localmente (Garante persistência no GitHub Pages)
+            // Salva localmente (Garante persistência no navegador)
             try {
                 localStorage.setItem('validador_hotmart', JSON.stringify(hotmartArr));
                 localStorage.setItem('validador_greenn', JSON.stringify(greennArr));
@@ -536,9 +535,9 @@
                 console.warn('Erro ao salvar no navegador:', e);
             }
 
-            // Salva na nuvem se disponível
-            if (window.firestoreDb && window.firestoreUserId && window.setDocFunc) {
-                const docRef = window.docFunc(window.firestoreDb, 'artifacts', window.firestoreAppId, 'users', window.firestoreUserId, 'settings', 'validatedProducts');
+            // Salva na nuvem (Firestore) se disponível
+            if (window.firestoreDb && window.firestoreUserId && window.setDocFunc && window.docFunc) {
+                const docRef = window.docFunc(window.firestoreDb, 'users', window.firestoreUserId, 'settings', 'validatedProducts');
                 window.setDocFunc(docRef, {
                     hotmart: hotmartArr,
                     greenn: greennArr,
