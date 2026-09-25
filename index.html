@@ -827,11 +827,20 @@
             }
         }
 
+        // Função para remover acentos de textos na busca
+        function removeAcentos(texto) {
+            if (!texto) return '';
+            return texto
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase();
+        }
+
         function onSearchInput() {
             const searchInput = document.getElementById('searchInput');
             if (!searchInput) return;
 
-            const query = searchInput.value.trim().toLowerCase();
+            const query = removeAcentos(searchInput.value.trim());
             const resultsContainer = document.getElementById('searchResults');
             const clearBtn = document.getElementById('clearSearchBtn');
             const dataset = getActiveDataset();
@@ -846,9 +855,16 @@
             if (clearBtn) clearBtn.classList.remove('hidden');
 
             const matches = dataset.filter(item => {
-                const matchNum = item.num.toString() === query || `${item.num}º` === query || `${item.num}` === query;
-                const matchName = item.name.toLowerCase().includes(query);
-                const matchExtra = currentPlatform === 'hotmart' ? item.id.includes(query) : item.valor.toLowerCase().includes(query);
+                const itemNumStr = item.num.toString();
+                const matchNum = itemNumStr === query || `${itemNumStr}º` === query || `${itemNumStr}` === query;
+                
+                // Busca ignorando acentos no nome do produto
+                const matchName = removeAcentos(item.name).includes(query);
+                
+                // Busca ignorando acentos no ID / Valor
+                const extraText = currentPlatform === 'hotmart' ? item.id : item.valor;
+                const matchExtra = removeAcentos(extraText).includes(query);
+
                 return matchNum || matchName || matchExtra;
             });
 
