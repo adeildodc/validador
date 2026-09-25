@@ -336,7 +336,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCQ4Zn0c2z4ogdSwBD364cvmm3NSkoBC6I",
@@ -356,32 +356,34 @@
             window.loadValidationStateFromLocalStorage();
 
             try {
+                // Autenticação anônima permite ler e escrever sem login visual
                 await signInAnonymously(auth);
 
                 window.firestoreDb = db;
                 window.docFunc = doc;
                 window.setDocFunc = setDoc;
 
-                // Documento fixo compartilhado para qualquer dispositivo/navegador
                 const docRef = doc(db, 'catalogo', 'validacoes');
-                const snap = await getDoc(docRef);
 
-                if (snap.exists()) {
-                    const data = snap.data();
-                    if (Array.isArray(data.hotmart)) {
+                // Ouve mudanças no banco em tempo real (Sincroniza todas as janelas/navegadores)
+                onSnapshot(docRef, (snap) => {
+                    if (snap.exists()) {
+                        const data = snap.data();
                         validatedHotmart.clear();
-                        data.hotmart.forEach(num => validatedHotmart.add(num));
-                    }
-                    if (Array.isArray(data.greenn)) {
                         validatedGreenn.clear();
-                        data.greenn.forEach(num => validatedGreenn.add(num));
+
+                        if (Array.isArray(data.hotmart)) data.hotmart.forEach(num => validatedHotmart.add(num));
+                        if (Array.isArray(data.greenn)) data.greenn.forEach(num => validatedGreenn.add(num));
+
+                        if (typeof updateProgressStats === 'function') updateProgressStats();
+                        if (typeof loadProduct === 'function' && typeof currentIndex !== 'undefined') loadProduct(currentIndex);
                     }
-                    
-                    if (typeof updateProgressStats === 'function') updateProgressStats();
-                    if (typeof loadProduct === 'function' && typeof currentIndex !== 'undefined') loadProduct(currentIndex);
-                }
+                }, (err) => {
+                    console.warn("Aviso na escuta em tempo real do Firestore:", err);
+                });
+
             } catch (err) {
-                console.warn("Erro ao sincronizar com o Firestore (usando fallback local):", err);
+                console.warn("Erro ao inicializar Firebase (usando salvamento local):", err);
             }
         };
     </script>
@@ -532,7 +534,7 @@
             const hotmartArr = Array.from(validatedHotmart);
             const greennArr = Array.from(validatedGreenn);
 
-            // Salva localmente (Garante persistência local)
+            // Salva localmente
             try {
                 localStorage.setItem('validador_hotmart', JSON.stringify(hotmartArr));
                 localStorage.setItem('validador_greenn', JSON.stringify(greennArr));
@@ -540,7 +542,7 @@
                 console.warn('Erro ao salvar no navegador:', e);
             }
 
-            // Salva no documento fixo do Firestore para sincronizar em qualquer navegador/dispositivo
+            // Salva no documento fixo do Firestore para sincronizar em qualquer lugar
             if (window.firestoreDb && window.setDocFunc && window.docFunc) {
                 const docRef = window.docFunc(window.firestoreDb, 'catalogo', 'validacoes');
                 window.setDocFunc(docRef, {
@@ -627,7 +629,7 @@
             if (numEl) numEl.textContent = item.num;
             if (nameEl) nameEl.value = item.name;
 
-            // Renderiza informações secundárias dependendo da plataforma
+            // Renderiza informações secundárias
             if (currentPlatform === 'hotmart') {
                 if (extraLabel) extraLabel.textContent = 'ID:';
                 if (extraValue) extraValue.textContent = item.id;
