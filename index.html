@@ -144,7 +144,7 @@
                     class="tab-btn active px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200"
                 >
                     <span class="w-2 h-2 rounded-full bg-orange-500"></span>
-                    Hotmart (68)
+                    Hotmart (<span id="hotmartCountLabel">70</span>)
                 </button>
                 <button 
                     id="tabGreenn"
@@ -169,7 +169,7 @@
                 <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span class="text-slate-400">Validados:</span>
-                    <span id="validatedCount" class="font-bold text-white">0</span> / <span id="totalPlatformCount" class="text-slate-400">68</span>
+                    <span id="validatedCount" class="font-bold text-white">0</span> / <span id="totalPlatformCount" class="text-slate-400">70</span>
                 </div>
                 <div class="w-px h-4 bg-slate-700"></div>
                 <div class="text-indigo-300 font-extrabold" id="percentageText">0%</div>
@@ -419,7 +419,7 @@
     </script>
 
     <script>
-        // Dataset Hotmart (68 Produtos)
+        // Dataset Hotmart (70 Produtos Atualizados)
         const hotmartProducts = [
             { num: 1, id: "8433965", name: "20 Dicas de Fontes Chaveadas", status: "Vendas ativas" },
             { num: 2, id: "8426345", name: "Acelerador de Reparos de Equipamentos com Tecnologias Inverter", status: "Vendas ativas" },
@@ -488,7 +488,9 @@
             { num: 65, id: "8433940", name: "Programação e Leitura de Memórias FLASH e EEPROM", status: "Vendas ativas" },
             { num: 66, id: "8434956", name: "Técnicas de Manutenção em Fontes de Televisores(TV) LED E LCD", status: "Vendas ativas" },
             { num: 67, id: "8434812", name: "Técnicas de Reballing Solda BGA", status: "Vendas ativas" },
-            { num: 68, id: "8387686", name: "TMTD Técnicas de Manutenção por Testes de Dispositivos", status: "Vendas ativas" }
+            { num: 68, id: "8387686", name: "TMTD Técnicas de Manutenção por Testes de Dispositivos", status: "Vendas ativas" },
+            { num: 69, id: "8361682", name: "Pós - Fontes Chaveadas", status: "Vendas ativas" },
+            { num: 70, id: "8489146", name: "Pós - Manutenção e Diagnóstico em Inversores Solares", status: "Vendas ativas" }
         ];
 
         // Dataset Greenn (58 Produtos)
@@ -553,7 +555,7 @@
             { num: 58, name: "Apostila de Procedimentos Práticos em Inversor Solar On-Grid", valor: "R$ 19,90", status: "Vendas ativas" }
         ];
 
-        // Dataset TMB (92 Produtos)
+        // Dataset TMB (92 Produtos)[cite: 2]
         const tmbProducts = [
             { num: 1, name: "EMAC + FONTES 2026", valor: "R$ 1.835,00", status: "Ativos", integracao: "Interrompido" },
             { num: 2, name: "Pós - Fontes Chaveadas Vitalício", valor: "R$ 870,00", status: "Ativos", integracao: "Interrompido" },
@@ -656,7 +658,6 @@
         const validatedGreenn = new Set();
         const validatedTmb = new Set();
 
-        // Variáveis de Controle para Confirmação Tripla
         let selectAllClicks = 0;
         let selectAllTimer = null;
         let unselectAllClicks = 0;
@@ -721,7 +722,6 @@
             return validatedTmb;
         }
 
-        // Lógica de Confirmação Tripla - Marcar Todos
         function handleSelectAllClick() {
             const btn = document.getElementById('selectAllBtn');
             const btnText = document.getElementById('selectAllBtnText');
@@ -770,7 +770,6 @@
             showToast(`Todos os ${dataset.length} produtos de ${currentPlatform.toUpperCase()} marcados!`, "check-circle", "emerald");
         }
 
-        // Lógica de Confirmação Tripla - Desmarcar Todos
         function handleUnselectAllClick() {
             const btn = document.getElementById('unselectAllBtn');
             const btnText = document.getElementById('unselectAllBtnText');
