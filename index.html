@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- SheetJS (XLSX) CDN para Exportar/Importar Excel -->
+    <!-- SheetJS (XLSX) CDN -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -122,16 +122,46 @@
 
     <header class="w-full border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
         <div class="max-w-5xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-4">
-            <!-- Logo & Title -->
-            <div class="flex items-center gap-3">
-                <div id="logoIconBg" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shadow-lg transition-all duration-300">
-                    <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+            
+            <!-- Logo & Coprodutor Switcher -->
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div id="logoIconBg" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shadow-lg transition-all duration-300">
+                        <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
+                            VALIDADOR<span id="logoSubText" class="text-orange-400 transition-colors duration-300">PRO</span>
+                        </h1>
+                        <p class="text-xs text-slate-400 font-medium">Gestão de Catálogo Multiplataforma</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="font-extrabold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
-                        VALIDADOR<span id="logoSubText" class="text-orange-400 transition-colors duration-300">PRO</span>
-                    </h1>
-                    <p class="text-xs text-slate-400 font-medium">Gestão de Catálogo Multiplataforma</p>
+
+                <!-- Seletor de Coprodutor -->
+                <div class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-xl border border-slate-800">
+                    <i data-lucide="user-check" class="w-4 h-4 text-indigo-400 ml-1"></i>
+                    <select 
+                        id="coprodutorSelect" 
+                        onchange="onCoprodutorChange()"
+                        class="bg-transparent text-xs font-bold text-slate-200 focus:outline-none cursor-pointer pr-1"
+                    ></select>
+                    
+                    <button 
+                        onclick="addCoprodutor()" 
+                        title="Adicionar Novo Coprodutor"
+                        class="p-1 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 text-xs transition active:scale-95 flex items-center gap-1"
+                    >
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    </button>
+                    
+                    <button 
+                        id="deleteCoprodutorBtn"
+                        onclick="deleteCoprodutor()" 
+                        title="Excluir Coprodutor Ativo"
+                        class="p-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 text-xs transition active:scale-95"
+                    >
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
                 </div>
             </div>
 
@@ -201,7 +231,7 @@
                 <!-- Botão Exportar Excel -->
                 <button 
                     onclick="exportToExcel()" 
-                    title="Baixar backup dos dados em formato Excel (.xlsx)"
+                    title="Baixar backup dos dados do coprodutor ativo em Excel (.xlsx)"
                     class="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
                 >
                     <i data-lucide="file-spreadsheets" class="w-3.5 h-3.5"></i>
@@ -211,7 +241,7 @@
                 <!-- Botão Importar Excel -->
                 <button 
                     onclick="triggerImportExcel()" 
-                    title="Carregar backup a partir de uma planilha Excel (.xlsx)"
+                    title="Carregar backup para o coprodutor ativo a partir de um Excel (.xlsx)"
                     class="px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
                 >
                     <i data-lucide="upload" class="w-3.5 h-3.5"></i>
@@ -426,19 +456,24 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        window.initStorage = async function() {
-            window.loadValidationStateFromLocalStorage();
+        let activeUnsubscribe = null;
+
+        window.initStorageForCoprodutor = async function(coprodutorId) {
+            window.loadValidationStateFromLocalStorage(coprodutorId);
 
             try {
-                await signInAnonymously(auth);
+                if (!auth.currentUser) await signInAnonymously(auth);
 
                 window.firestoreDb = db;
                 window.docFunc = doc;
                 window.setDocFunc = setDoc;
 
-                const docRef = doc(db, 'catalogo', 'validacoes');
+                const docName = coprodutorId === 'joice' ? 'validacoes' : `validacoes_${coprodutorId}`;
+                const docRef = doc(db, 'catalogo', docName);
 
-                onSnapshot(docRef, (snap) => {
+                if (activeUnsubscribe) activeUnsubscribe();
+
+                activeUnsubscribe = onSnapshot(docRef, (snap) => {
                     if (snap.exists()) {
                         const data = snap.data();
                         validatedHotmart.clear();
@@ -699,6 +734,9 @@
         let currentIndex = 0;
         let hideValidated = false;
         
+        let coprodutores = [{ id: 'joice', name: 'Joice' }];
+        let activeCoprodutorId = 'joice';
+
         const validatedHotmart = new Set();
         const validatedGreenn = new Set();
         const validatedTmb = new Set();
@@ -708,22 +746,166 @@
         let unselectAllClicks = 0;
         let unselectAllTimer = null;
 
+        // Gestão de Coprodutores
+        function loadCoprodutoresList() {
+            try {
+                const saved = localStorage.getItem('validador_coprodutores_list');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        coprodutores = parsed;
+                    }
+                }
+            } catch (e) {
+                console.warn("Erro ao carregar lista de coprodutores:", e);
+            }
+            renderCoprodutorSelect();
+        }
+
+        function saveCoprodutoresList() {
+            try {
+                localStorage.setItem('validador_coprodutores_list', JSON.stringify(coprodutores));
+            } catch (e) {
+                console.warn("Erro ao salvar lista de coprodutores:", e);
+            }
+        }
+
+        function renderCoprodutorSelect() {
+            const select = document.getElementById('coprodutorSelect');
+            if (!select) return;
+
+            select.innerHTML = '';
+            coprodutores.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.id;
+                option.textContent = c.name;
+                if (c.id === activeCoprodutorId) option.selected = true;
+                select.appendChild(option);
+            });
+
+            const deleteBtn = document.getElementById('deleteCoprodutorBtn');
+            if (deleteBtn) {
+                if (activeCoprodutorId === 'joice') {
+                    deleteBtn.style.display = 'none';
+                } else {
+                    deleteBtn.style.display = 'inline-flex';
+                }
+            }
+        }
+
+        function onCoprodutorChange() {
+            const select = document.getElementById('coprodutorSelect');
+            if (!select) return;
+
+            activeCoprodutorId = select.value;
+            currentIndex = 0;
+
+            if (window.initStorageForCoprodutor) {
+                window.initStorageForCoprodutor(activeCoprodutorId);
+            } else {
+                loadValidationStateFromLocalStorage(activeCoprodutorId);
+                loadProduct(0);
+                updateProgressStats();
+            }
+
+            renderCoprodutorSelect();
+            const currentName = getActiveCoprodutorName();
+            showToast(`Perfil alterado para: ${currentName}`, "user-check", "purple");
+        }
+
+        function getActiveCoprodutorName() {
+            const found = coprodutores.find(c => c.id === activeCoprodutorId);
+            return found ? found.name : 'Joice';
+        }
+
+        function addCoprodutor() {
+            const name = prompt("Digite o nome do novo coprodutor:");
+            if (!name || !name.trim()) return;
+
+            const cleanName = name.trim();
+            const id = cleanName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "_");
+
+            if (coprodutores.some(c => c.id === id)) {
+                showToast("Já existe um coprodutor com esse nome!", "alert-circle", "rose");
+                return;
+            }
+
+            coprodutores.push({ id, name: cleanName });
+            activeCoprodutorId = id;
+            saveCoprodutoresList();
+            renderCoprodutorSelect();
+
+            validatedHotmart.clear();
+            validatedGreenn.clear();
+            validatedTmb.clear();
+            saveValidationState();
+
+            if (window.initStorageForCoprodutor) {
+                window.initStorageForCoprodutor(activeCoprodutorId);
+            } else {
+                updateProgressStats();
+                loadProduct(0);
+            }
+
+            showToast(`Coprodutor "${cleanName}" adicionado com sucesso!`, "user-plus", "emerald");
+        }
+
+        function deleteCoprodutor() {
+            if (activeCoprodutorId === 'joice') {
+                showToast("O perfil da Joice é o padrão e está protegido contra exclusão.", "shield-alert", "amber");
+                return;
+            }
+
+            const activeName = getActiveCoprodutorName();
+            const confirmMsg = prompt(`ATENÇÃO: Para excluir o coprodutor "${activeName}" e todas as suas validações, digite o nome exato "${activeName}":`);
+
+            if (confirmMsg === activeName) {
+                // Apaga do LocalStorage
+                localStorage.removeItem(`validador_hotmart_${activeCoprodutorId}`);
+                localStorage.removeItem(`validador_greenn_${activeCoprodutorId}`);
+                localStorage.removeItem(`validador_tmb_${activeCoprodutorId}`);
+
+                // Remove da lista
+                coprodutores = coprodutores.filter(c => c.id !== activeCoprodutorId);
+                activeCoprodutorId = 'joice';
+                
+                saveCoprodutoresList();
+                renderCoprodutorSelect();
+
+                if (window.initStorageForCoprodutor) {
+                    window.initStorageForCoprodutor('joice');
+                } else {
+                    loadValidationStateFromLocalStorage('joice');
+                    loadProduct(0);
+                    updateProgressStats();
+                }
+
+                showToast(`Coprodutor "${activeName}" excluído com sucesso.`, "trash-2", "rose");
+            } else if (confirmMsg !== null) {
+                showToast("Nome incorreto. A exclusão foi cancelada.", "x-circle", "amber");
+            }
+        }
+
         function saveValidationState() {
             const hotmartArr = Array.from(validatedHotmart);
             const greennArr = Array.from(validatedGreenn);
             const tmbArr = Array.from(validatedTmb);
 
+            const suffix = activeCoprodutorId === 'joice' ? '' : `_${activeCoprodutorId}`;
+
             try {
-                localStorage.setItem('validador_hotmart', JSON.stringify(hotmartArr));
-                localStorage.setItem('validador_greenn', JSON.stringify(greennArr));
-                localStorage.setItem('validador_tmb', JSON.stringify(tmbArr));
+                localStorage.setItem(`validador_hotmart${suffix}`, JSON.stringify(hotmartArr));
+                localStorage.setItem(`validador_greenn${suffix}`, JSON.stringify(greennArr));
+                localStorage.setItem(`validador_tmb${suffix}`, JSON.stringify(tmbArr));
             } catch (e) {
                 console.warn('Erro ao salvar no navegador:', e);
             }
 
             if (window.firestoreDb && window.setDocFunc && window.docFunc) {
-                const docRef = window.docFunc(window.firestoreDb, 'catalogo', 'validacoes');
+                const docName = activeCoprodutorId === 'joice' ? 'validacoes' : `validacoes_${activeCoprodutorId}`;
+                const docRef = window.docFunc(window.firestoreDb, 'catalogo', docName);
                 window.setDocFunc(docRef, {
+                    coprodutor: getActiveCoprodutorName(),
                     hotmart: hotmartArr,
                     greenn: greennArr,
                     tmb: tmbArr,
@@ -732,19 +914,24 @@
             }
         }
 
-        function loadValidationStateFromLocalStorage() {
+        function loadValidationStateFromLocalStorage(coprodutorId = activeCoprodutorId) {
+            const suffix = coprodutorId === 'joice' ? '' : `_${coprodutorId}`;
+            validatedHotmart.clear();
+            validatedGreenn.clear();
+            validatedTmb.clear();
+
             try {
-                const h = localStorage.getItem('validador_hotmart');
+                const h = localStorage.getItem(`validador_hotmart${suffix}`);
                 if (h) {
                     const parsed = JSON.parse(h);
                     if (Array.isArray(parsed)) parsed.forEach(num => validatedHotmart.add(num));
                 }
-                const g = localStorage.getItem('validador_greenn');
+                const g = localStorage.getItem(`validador_greenn${suffix}`);
                 if (g) {
                     const parsed = JSON.parse(g);
                     if (Array.isArray(parsed)) parsed.forEach(num => validatedGreenn.add(num));
                 }
-                const t = localStorage.getItem('validador_tmb');
+                const t = localStorage.getItem(`validador_tmb${suffix}`);
                 if (t) {
                     const parsed = JSON.parse(t);
                     if (Array.isArray(parsed)) parsed.forEach(num => validatedTmb.add(num));
@@ -755,13 +942,14 @@
         }
         window.loadValidationStateFromLocalStorage = loadValidationStateFromLocalStorage;
 
-        // Funções de Exportar e Importar Excel (.xlsx)
+        // Exportar / Importar Excel (.xlsx)
         function exportToExcel() {
             if (typeof XLSX === 'undefined') {
-                showToast("Biblioteca Excel carregando... Tente novamente em 2 segundos.", "alert-circle", "rose");
+                showToast("Biblioteca Excel carregando... Tente novamente em segundos.", "alert-circle", "rose");
                 return;
             }
 
+            const coprodutorName = getActiveCoprodutorName();
             const wb = XLSX.utils.book_new();
 
             const createSheetData = (products, validatedSet) => {
@@ -781,8 +969,9 @@
             XLSX.utils.book_append_sheet(wb, sheetTmb, "TMB");
 
             const dateStr = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(wb, `backup_validacoes_joice_${dateStr}.xlsx`);
-            showToast("Backup baixado com sucesso em Excel!", "file-spreadsheets", "emerald");
+            const fileName = `backup_validacoes_${activeCoprodutorId}_${dateStr}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            showToast(`Backup de ${coprodutorName} baixado em Excel!`, "file-spreadsheets", "emerald");
         }
 
         function triggerImportExcel() {
@@ -802,7 +991,6 @@
 
                     let importedCount = 0;
 
-                    // Importar Aba Hotmart
                     if (workbook.Sheets["Hotmart"]) {
                         validatedHotmart.clear();
                         const rows = XLSX.utils.sheet_to_json(workbook.Sheets["Hotmart"]);
@@ -816,7 +1004,6 @@
                         });
                     }
 
-                    // Importar Aba Greenn
                     if (workbook.Sheets["Greenn"]) {
                         validatedGreenn.clear();
                         const rows = XLSX.utils.sheet_to_json(workbook.Sheets["Greenn"]);
@@ -830,7 +1017,6 @@
                         });
                     }
 
-                    // Importar Aba TMB
                     if (workbook.Sheets["TMB"]) {
                         validatedTmb.clear();
                         const rows = XLSX.utils.sheet_to_json(workbook.Sheets["TMB"]);
@@ -848,11 +1034,12 @@
                     updateProgressStats();
                     loadProduct(currentIndex);
 
-                    showToast(`Backup restaurado! ${importedCount} itens validados carregados.`, "check-circle", "emerald");
+                    const currentName = getActiveCoprodutorName();
+                    showToast(`Backup de ${currentName} restaurado! (${importedCount} itens validados)`, "check-circle", "emerald");
 
                 } catch (err) {
                     console.error("Erro na importação:", err);
-                    showToast("Erro ao ler o arquivo Excel. Verifique a estrutura.", "alert-circle", "rose");
+                    showToast("Erro ao ler arquivo Excel. Verifique a estrutura.", "alert-circle", "rose");
                 } finally {
                     event.target.value = '';
                 }
@@ -1399,13 +1586,15 @@
 
         window.onload = function() {
             if (window.lucide) window.lucide.createIcons();
-            if (window.initStorage) {
-                window.initStorage();
+            loadCoprodutoresList();
+
+            if (window.initStorageForCoprodutor) {
+                window.initStorageForCoprodutor(activeCoprodutorId);
             } else {
-                loadValidationStateFromLocalStorage();
+                loadValidationStateFromLocalStorage(activeCoprodutorId);
+                loadProduct(0);
+                updateProgressStats();
             }
-            loadProduct(0);
-            updateProgressStats();
         };
     </script>
 </body>
