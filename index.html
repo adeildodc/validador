@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SheetJS (XLSX) CDN para Exportar/Importar Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -194,8 +196,31 @@
                 </div>
             </div>
 
-            <!-- Global Action Buttons -->
+            <!-- Global Action Buttons + Excel Backup -->
             <div class="flex items-center gap-2">
+                <!-- Botão Exportar Excel -->
+                <button 
+                    onclick="exportToExcel()" 
+                    title="Baixar backup dos dados em formato Excel (.xlsx)"
+                    class="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
+                >
+                    <i data-lucide="file-spreadsheets" class="w-3.5 h-3.5"></i>
+                    <span>Exportar (.xlsx)</span>
+                </button>
+
+                <!-- Botão Importar Excel -->
+                <button 
+                    onclick="triggerImportExcel()" 
+                    title="Carregar backup a partir de uma planilha Excel (.xlsx)"
+                    class="px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
+                >
+                    <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                    <span>Importar (.xlsx)</span>
+                </button>
+                <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="hidden" onchange="importFromExcel(event)" />
+
+                <div class="w-px h-4 bg-slate-800"></div>
+
                 <button 
                     id="selectAllBtn"
                     onclick="handleSelectAllClick()" 
@@ -438,7 +463,7 @@
     </script>
 
     <script>
-        // Dataset Hotmart (70 Produtos Atualizados)
+        // Dataset Hotmart (70 Produtos)
         const hotmartProducts = [
             { num: 1, id: "8433965", name: "20 Dicas de Fontes Chaveadas", status: "Vendas ativas" },
             { num: 2, id: "8426345", name: "Acelerador de Reparos de Equipamentos com Tecnologias Inverter", status: "Vendas ativas" },
@@ -729,6 +754,112 @@
             }
         }
         window.loadValidationStateFromLocalStorage = loadValidationStateFromLocalStorage;
+
+        // Funções de Exportar e Importar Excel (.xlsx)
+        function exportToExcel() {
+            if (typeof XLSX === 'undefined') {
+                showToast("Biblioteca Excel carregando... Tente novamente em 2 segundos.", "alert-circle", "rose");
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+
+            const createSheetData = (products, validatedSet) => {
+                const rows = [["Número", "Validado"]];
+                products.forEach(p => {
+                    rows.push([p.num, validatedSet.has(p.num) ? "Sim" : "Não"]);
+                });
+                return XLSX.utils.aoa_to_sheet(rows);
+            };
+
+            const sheetHotmart = createSheetData(hotmartProducts, validatedHotmart);
+            const sheetGreenn = createSheetData(greennProducts, validatedGreenn);
+            const sheetTmb = createSheetData(tmbProducts, validatedTmb);
+
+            XLSX.utils.book_append_sheet(wb, sheetHotmart, "Hotmart");
+            XLSX.utils.book_append_sheet(wb, sheetGreenn, "Greenn");
+            XLSX.utils.book_append_sheet(wb, sheetTmb, "TMB");
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `backup_validacoes_joice_${dateStr}.xlsx`);
+            showToast("Backup baixado com sucesso em Excel!", "file-spreadsheets", "emerald");
+        }
+
+        function triggerImportExcel() {
+            const input = document.getElementById('excelFileInput');
+            if (input) input.click();
+        }
+
+        function importFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    let importedCount = 0;
+
+                    // Importar Aba Hotmart
+                    if (workbook.Sheets["Hotmart"]) {
+                        validatedHotmart.clear();
+                        const rows = XLSX.utils.sheet_to_json(workbook.Sheets["Hotmart"]);
+                        rows.forEach(r => {
+                            const num = Number(r["Número"]);
+                            const val = String(r["Validado"]).trim().toLowerCase();
+                            if (num && (val === "sim" || val === "true" || val === "1")) {
+                                validatedHotmart.add(num);
+                                importedCount++;
+                            }
+                        });
+                    }
+
+                    // Importar Aba Greenn
+                    if (workbook.Sheets["Greenn"]) {
+                        validatedGreenn.clear();
+                        const rows = XLSX.utils.sheet_to_json(workbook.Sheets["Greenn"]);
+                        rows.forEach(r => {
+                            const num = Number(r["Número"]);
+                            const val = String(r["Validado"]).trim().toLowerCase();
+                            if (num && (val === "sim" || val === "true" || val === "1")) {
+                                validatedGreenn.add(num);
+                                importedCount++;
+                            }
+                        });
+                    }
+
+                    // Importar Aba TMB
+                    if (workbook.Sheets["TMB"]) {
+                        validatedTmb.clear();
+                        const rows = XLSX.utils.sheet_to_json(workbook.Sheets["TMB"]);
+                        rows.forEach(r => {
+                            const num = Number(r["Número"]);
+                            const val = String(r["Validado"]).trim().toLowerCase();
+                            if (num && (val === "sim" || val === "true" || val === "1")) {
+                                validatedTmb.add(num);
+                                importedCount++;
+                            }
+                        });
+                    }
+
+                    saveValidationState();
+                    updateProgressStats();
+                    loadProduct(currentIndex);
+
+                    showToast(`Backup restaurado! ${importedCount} itens validados carregados.`, "check-circle", "emerald");
+
+                } catch (err) {
+                    console.error("Erro na importação:", err);
+                    showToast("Erro ao ler o arquivo Excel. Verifique a estrutura.", "alert-circle", "rose");
+                } finally {
+                    event.target.value = '';
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
 
         function getActiveDataset() {
             let dataset = hotmartProducts;
