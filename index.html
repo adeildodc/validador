@@ -234,7 +234,7 @@
                     title="Baixar backup dos dados do coprodutor ativo em Excel (.xlsx)"
                     class="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
                 >
-                    <i data-lucide="file-spreadsheets" class="w-3.5 h-3.5"></i>
+                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
                     <span>Exportar (.xlsx)</span>
                 </button>
 
@@ -495,6 +495,25 @@
                 console.warn("Erro ao inicializar Firebase (usando salvamento local):", err);
             }
         };
+
+        window.saveValidationToFirestore = async function() {
+            if (!window.firestoreDb || !window.docFunc || !window.setDocFunc) return;
+
+            const docName = activeCoprodutorId === 'joice' ? 'validacoes' : `validacoes_${activeCoprodutorId}`;
+            const docRef = window.docFunc(window.firestoreDb, 'catalogo', docName);
+
+            try {
+                await window.setDocFunc(docRef, {
+                    coprodutor: getActiveCoprodutorName(),
+                    hotmart: Array.from(validatedHotmart),
+                    greenn: Array.from(validatedGreenn),
+                    tmb: Array.from(validatedTmb),
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+            } catch (err) {
+                console.error("Erro ao salvar no Firestore:", err);
+            }
+        };
     </script>
 
     <script>
@@ -634,7 +653,7 @@
             { num: 58, name: "Apostila de Procedimentos Práticos em Inversor Solar On-Grid", valor: "R$ 19,90", status: "Vendas ativas" }
         ];
 
-        // Dataset TMB (92 Produtos)
+        // Dataset TMB (92 Produtos)[cite: 2]
         const tmbProducts = [
             { num: 1, name: "EMAC + FONTES 2026", valor: "R$ 1.835,00", status: "Ativos", integracao: "Interrompido" },
             { num: 2, name: "Pós - Fontes Chaveadas Vitalício", valor: "R$ 870,00", status: "Ativos", integracao: "Interrompido" },
@@ -746,7 +765,6 @@
         let unselectAllClicks = 0;
         let unselectAllTimer = null;
 
-        // Gestão de Coprodutores
         function loadCoprodutoresList() {
             try {
                 const saved = localStorage.getItem('validador_coprodutores_list');
@@ -860,12 +878,10 @@
             const confirmMsg = prompt(`ATENÇÃO: Para excluir o coprodutor "${activeName}" e todas as suas validações, digite o nome exato "${activeName}":`);
 
             if (confirmMsg === activeName) {
-                // Apaga do LocalStorage
                 localStorage.removeItem(`validador_hotmart_${activeCoprodutorId}`);
                 localStorage.removeItem(`validador_greenn_${activeCoprodutorId}`);
                 localStorage.removeItem(`validador_tmb_${activeCoprodutorId}`);
 
-                // Remove da lista
                 coprodutores = coprodutores.filter(c => c.id !== activeCoprodutorId);
                 activeCoprodutorId = 'joice';
                 
@@ -901,16 +917,8 @@
                 console.warn('Erro ao salvar no navegador:', e);
             }
 
-            if (window.firestoreDb && window.setDocFunc && window.docFunc) {
-                const docName = activeCoprodutorId === 'joice' ? 'validacoes' : `validacoes_${activeCoprodutorId}`;
-                const docRef = window.docFunc(window.firestoreDb, 'catalogo', docName);
-                window.setDocFunc(docRef, {
-                    coprodutor: getActiveCoprodutorName(),
-                    hotmart: hotmartArr,
-                    greenn: greennArr,
-                    tmb: tmbArr,
-                    updatedAt: new Date().toISOString()
-                }, { merge: true }).catch(err => console.error("Erro ao salvar no Firestore:", err));
+            if (typeof window.saveValidationToFirestore === 'function') {
+                window.saveValidationToFirestore();
             }
         }
 
@@ -942,7 +950,6 @@
         }
         window.loadValidationStateFromLocalStorage = loadValidationStateFromLocalStorage;
 
-        // Exportar / Importar Excel (.xlsx)
         function exportToExcel() {
             if (typeof XLSX === 'undefined') {
                 showToast("Biblioteca Excel carregando... Tente novamente em segundos.", "alert-circle", "rose");
@@ -971,7 +978,7 @@
             const dateStr = new Date().toISOString().split('T')[0];
             const fileName = `backup_validacoes_${activeCoprodutorId}_${dateStr}.xlsx`;
             XLSX.writeFile(wb, fileName);
-            showToast(`Backup de ${coprodutorName} baixado em Excel!`, "file-spreadsheets", "emerald");
+            showToast(`Backup de ${coprodutorName} baixado em Excel!`, "file-spreadsheet", "emerald");
         }
 
         function triggerImportExcel() {
