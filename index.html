@@ -173,7 +173,7 @@
                     class="tab-btn active px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200"
                 >
                     <span class="w-2 h-2 rounded-full bg-orange-500"></span>
-                    Hotmart (<span id="hotmartCountLabel">70</span>)
+                    Hotmart (<span id="hotmartCountLabel">73</span>)
                 </button>
                 <button 
                     id="tabGreenn"
@@ -189,7 +189,7 @@
                     class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200"
                 >
                     <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                    TMB (92)
+                    TMB (96)
                 </button>
             </div>
 
@@ -219,7 +219,7 @@
                     <div class="flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         <span class="text-slate-400">Validados:</span>
-                        <span id="validatedCount" class="font-bold text-white">0</span> / <span id="totalPlatformCount" class="text-slate-400">70</span>
+                        <span id="validatedCount" class="font-bold text-white">0</span> / <span id="totalPlatformCount" class="text-slate-400">73</span>
                     </div>
                     <div class="w-px h-4 bg-slate-700"></div>
                     <div class="text-indigo-300 font-extrabold" id="percentageText">0%</div>
@@ -517,7 +517,7 @@
     </script>
 
     <script>
-        // Dataset Hotmart (70 Produtos)
+        // Dataset Hotmart (73 Produtos)
         const hotmartProducts = [
             { num: 1, id: "8433965", name: "20 Dicas de Fontes Chaveadas", status: "Vendas ativas" },
             { num: 2, id: "8426345", name: "Acelerador de Reparos de Equipamentos com Tecnologias Inverter", status: "Vendas ativas" },
@@ -588,7 +588,10 @@
             { num: 67, id: "8434812", name: "Técnicas de Reballing Solda BGA", status: "Vendas ativas" },
             { num: 68, id: "8387686", name: "TMTD Técnicas de Manutenção por Testes de Dispositivos", status: "Vendas ativas" },
             { num: 69, id: "8361682", name: "Pós - Fontes Chaveadas", status: "Vendas ativas" },
-            { num: 70, id: "8489146", name: "Pós - Manutenção e Diagnóstico em Inversores Solares", status: "Vendas ativas" }
+            { num: 70, id: "8489146", name: "Pós - Manutenção e Diagnóstico em Inversores Solares", status: "Vendas ativas" },
+            { num: 71, id: "8677120", name: "Especialista em Manutenção de Tecnologia Inverter 2.0", status: "Vendas ativas" },
+            { num: 72, id: "8677251", name: "Pós - Manutenção e Diagnóstico em Inversores Solares", status: "Vendas ativas" },
+            { num: 73, id: "8677268", name: "Pós - Fontes Chaveadas", status: "Vendas ativas" }
         ];
 
         // Dataset Greenn (58 Produtos)
@@ -653,7 +656,7 @@
             { num: 58, name: "Apostila de Procedimentos Práticos em Inversor Solar On-Grid", valor: "R$ 19,90", status: "Vendas ativas" }
         ];
 
-        // Dataset TMB (92 Produtos)[cite: 2]
+        // Dataset TMB (96 Produtos)
         const tmbProducts = [
             { num: 1, name: "EMAC + FONTES 2026", valor: "R$ 1.835,00", status: "Ativos", integracao: "Interrompido" },
             { num: 2, name: "Pós - Fontes Chaveadas Vitalício", valor: "R$ 870,00", status: "Ativos", integracao: "Interrompido" },
@@ -746,7 +749,11 @@
             { num: 89, name: "ESPECIALISTA EM MANUTENÇÃO DE AMPLIFICADORES DE ÁUDIO - PRATA", valor: "R$ 0,00", status: "Ativos", integracao: "Integrado" },
             { num: 90, name: "ESPECIALISTA EM MANUTENÇÃO DE TELEVISORES - BRONZE", valor: "R$ 697,00", status: "Ativos", integracao: "Interrompido" },
             { num: 91, name: "ESPECIALISTA EM MANUTENÇÃO DE FONTES CHAVEADAS", valor: "R$ 997,00", status: "Ativos", integracao: "Interrompido" },
-            { num: 92, name: "Webinar - EMAC - Evolução do Metodo de Análise de Circuitos - Reparador de Placas", valor: "R$ 1.697,00", status: "Ativos", integracao: "Interrompido" }
+            { num: 92, name: "Webinar - EMAC - Evolução do Metodo de Análise de Circuitos - Reparador de Placas", valor: "R$ 1.697,00", status: "Ativos", integracao: "Interrompido" },
+            { num: 93, name: "Especialista em Manutenção em Tecnologias Inverter 2.0", valor: "ID: 38980", status: "Ativos", integracao: "Integrado" },
+            { num: 94, name: "Pós - Manutenção e Diagnóstico em Inversores Solares", valor: "ID: 38984", status: "Ativos", integracao: "Integrado" },
+            { num: 95, name: "Pós - Fontes Chaveadas Vitalício (Novo)", valor: "ID: 38981", status: "Ativos", integracao: "Integrado" },
+            { num: 96, name: "Pós - Fontes Chaveadas Acesso 01 ano (Novo)", valor: "ID: 38985", status: "Ativos", integracao: "Integrado" }
         ];
 
         let currentPlatform = 'hotmart'; 
@@ -1312,7 +1319,7 @@
                 if (extraLabel) extraLabel.textContent = 'ID:';
                 if (extraValue) extraValue.textContent = item.id;
             } else {
-                if (extraLabel) extraLabel.textContent = 'Valor:';
+                if (extraLabel) extraLabel.textContent = item.valor && item.valor.startsWith('ID:') ? '' : 'Valor:';
                 if (extraValue) extraValue.textContent = item.valor;
             }
 
