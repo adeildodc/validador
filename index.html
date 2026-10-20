@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validador Pro - Gestão de Catálogo & Coprodutores</title>
+    <title>Validador Pro - Hotmart, Greenn & TMB</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -121,7 +121,7 @@
 <body id="appBody" class="theme-hotmart text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
 
     <header class="w-full border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
-        <div class="max-w-6xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-4">
+        <div class="max-w-5xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-4">
             
             <!-- Logo & Coprodutor Switcher -->
             <div class="flex items-center gap-4">
@@ -133,11 +133,11 @@
                         <h1 class="font-extrabold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
                             VALIDADOR<span id="logoSubText" class="text-orange-400 transition-colors duration-300">PRO</span>
                         </h1>
-                        <p class="text-xs text-slate-400 font-medium">Gestão Multiplataforma & Coprodutores</p>
+                        <p class="text-xs text-slate-400 font-medium">Gestão de Catálogo Multiplataforma</p>
                     </div>
                 </div>
 
-                <!-- Seletor de Perfil Coprodutor -->
+                <!-- Seletor de Coprodutor -->
                 <div class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-xl border border-slate-800">
                     <i data-lucide="user-check" class="w-4 h-4 text-indigo-400 ml-1"></i>
                     <select 
@@ -165,15 +165,15 @@
                 </div>
             </div>
 
-            <!-- Tabs de Plataforma & Modos -->
-            <div class="flex items-center p-1 bg-slate-950/70 rounded-xl border border-slate-800 gap-1 flex-wrap">
+            <!-- Platform Switcher Tabs -->
+            <div class="flex items-center p-1 bg-slate-950/70 rounded-xl border border-slate-800 gap-1">
                 <button 
                     id="tabHotmart"
                     onclick="switchPlatform('hotmart')" 
                     class="tab-btn active px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200"
                 >
                     <span class="w-2 h-2 rounded-full bg-orange-500"></span>
-                    Hotmart (104)
+                    Hotmart (<span id="hotmartCountLabel">104</span>)
                 </button>
                 <button 
                     id="tabGreenn"
@@ -191,19 +191,10 @@
                     <span class="w-2 h-2 rounded-full bg-purple-500"></span>
                     TMB (96)
                 </button>
-                <div class="w-px h-4 bg-slate-800 mx-1"></div>
-                <button 
-                    id="tabCoprodutores"
-                    onclick="toggleCoprodutoresView()" 
-                    class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/30 transition"
-                >
-                    <i data-lucide="users" class="w-3.5 h-3.5"></i>
-                    Rastreio de Coprodutores
-                </button>
             </div>
 
-            <!-- Stats & Filtros -->
-            <div id="catalogHeaderControls" class="flex items-center gap-3">
+            <!-- Toggle Ocultar Validados + Stats Header -->
+            <div class="flex items-center gap-3">
                 <div class="flex items-center gap-2 bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
                     <div class="relative inline-block w-9 h-5 align-middle select-none">
                         <input 
@@ -235,20 +226,22 @@
                 </div>
             </div>
 
-            <!-- Ações Globais -->
-            <div id="catalogGlobalActions" class="flex items-center gap-2">
+            <!-- Global Action Buttons + Excel Backup -->
+            <div class="flex items-center gap-2">
+                <!-- Botão Exportar Excel -->
                 <button 
                     onclick="exportToExcel()" 
-                    title="Exportar backup em Excel (.xlsx)"
+                    title="Baixar backup dos dados do coprodutor ativo em Excel (.xlsx)"
                     class="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
                 >
                     <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
                     <span>Exportar (.xlsx)</span>
                 </button>
 
+                <!-- Botão Importar Excel -->
                 <button 
                     onclick="triggerImportExcel()" 
-                    title="Importar backup (.xlsx)"
+                    title="Carregar backup para o coprodutor ativo a partir de um Excel (.xlsx)"
                     class="px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95"
                 >
                     <i data-lucide="upload" class="w-3.5 h-3.5"></i>
@@ -261,6 +254,7 @@
                 <button 
                     id="selectAllBtn"
                     onclick="handleSelectAllClick()" 
+                    title="Marcar todos os itens da plataforma ativa (Requer 3 cliques)"
                     class="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 min-w-[120px] justify-center"
                 >
                     <i data-lucide="check-check" class="w-3.5 h-3.5"></i>
@@ -269,6 +263,7 @@
                 <button 
                     id="unselectAllBtn"
                     onclick="handleUnselectAllClick()" 
+                    title="Desmarcar todos os itens da plataforma ativa (Requer 3 cliques)"
                     class="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 min-w-[130px] justify-center"
                 >
                     <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
@@ -276,16 +271,15 @@
                 </button>
             </div>
         </div>
-        <!-- Barra de Progresso Superior -->
+        <!-- Progress Bar Line -->
         <div class="w-full bg-slate-800/50 h-1.5 overflow-hidden">
             <div id="topProgressBar" class="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-400 transition-all duration-300 w-0"></div>
         </div>
     </header>
 
-    <!-- PAINEL DE CATÁLOGO DE PRODUTOS -->
-    <main id="catalogViewSection" class="max-w-3xl mx-auto w-full px-4 py-8 flex-1 flex flex-col justify-center">
+    <main class="max-w-3xl mx-auto w-full px-4 py-8 flex-1 flex flex-col justify-center">
 
-        <!-- Barra de Pesquisa -->
+        <!-- Search Bar Section -->
         <div class="relative mb-6">
             <div class="relative flex items-center">
                 <i data-lucide="search" class="w-5 h-5 absolute left-4 text-slate-400 pointer-events-none"></i>
@@ -306,17 +300,16 @@
                 </button>
             </div>
 
-            <!-- Resultados Dinâmicos da Pesquisa -->
+            <!-- Search Dynamic Dropdown Results -->
             <div 
                 id="searchResults" 
                 class="hidden absolute left-0 right-0 top-full mt-2 glass-card rounded-2xl border border-slate-700/80 max-h-64 overflow-y-auto divide-y divide-slate-800 z-50 shadow-2xl"
             ></div>
         </div>
 
-        <!-- Cartão Principal do Produto -->
         <div class="glass-card rounded-3xl p-6 sm:p-8 relative overflow-hidden">
             
-            <!-- Linha de Selos Superiores -->
+            <!-- Top Badges Row -->
             <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <div class="flex items-center gap-2">
                     <span id="numBadge" class="px-3 py-1 rounded-xl bg-orange-500/20 border border-orange-500/30 text-orange-300 font-extrabold text-sm tracking-wide transition-all duration-300">
@@ -330,7 +323,7 @@
                     </span>
                 </div>
 
-                <!-- Info Adicional -->
+                <!-- Extra Info Display -->
                 <div id="extraInfoContainer" class="flex items-center gap-2">
                     <div id="displayStatus" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         <span class="w-2 h-2 rounded-full bg-emerald-400"></span>Vendas ativas
@@ -351,7 +344,7 @@
                 </div>
             </div>
 
-            <!-- Caixa de Nome Copiável -->
+            <!-- Copiable Product Name Box -->
             <div class="mb-6 relative">
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                     Nome do Produto (Campo Copiável)
@@ -376,10 +369,10 @@
                 </div>
             </div>
 
-            <!-- Divisor -->
+            <!-- Divider -->
             <div class="w-full h-px bg-slate-800/80 mb-6"></div>
 
-            <!-- Opção de Validação -->
+            <!-- Validation Checkbox Section -->
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
                     <div class="relative inline-block w-12 h-6 align-middle select-none">
@@ -401,17 +394,16 @@
                     </label>
                 </div>
 
-                <!-- Atalhos de Teclado -->
+                <!-- Shortcuts Helper -->
                 <div class="hidden sm:flex items-center gap-2 text-xs text-slate-500">
-                    <span>Atalhos:</span>
+                    <span>Navegação:</span>
                     <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300 font-mono">←</kbd>
                     <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300 font-mono">→</kbd>
-                    <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-300 font-mono">X</kbd>
                 </div>
             </div>
         </div>
 
-        <!-- Botões de Navegação -->
+        <!-- Navigation Buttons -->
         <div class="grid grid-cols-2 gap-4 mt-6">
             <button 
                 onclick="previousItem()" 
@@ -426,60 +418,13 @@
                 onclick="nextItem()" 
                 class="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition shadow-lg active:scale-95 group"
             >
-                <span>Próximo [X]</span>
+                <span>Próximo</span>
                 <span id="nextItemBadge" class="px-2 py-0.5 rounded-lg bg-white/20 text-xs font-mono">#2</span>
                 <i data-lucide="arrow-right" class="w-4 h-4 text-white group-hover:translate-x-1 transition-transform"></i>
             </button>
         </div>
     </main>
 
-    <!-- PAINEL DE RASTREIO DE COPRODUTORES -->
-    <main id="coprodutoresSection" class="hidden max-w-5xl mx-auto w-full px-4 py-8 flex-1">
-        <div class="glass-card rounded-3xl p-6 sm:p-8">
-            <div class="flex items-center gap-3 mb-4">
-                <i data-lucide="user-search" class="w-6 h-6 text-indigo-400"></i>
-                <h2 class="text-lg font-bold text-slate-100">Validador de Coprodutores (Rastreio de Cópia Ativa)</h2>
-            </div>
-            <p class="text-xs text-slate-400 mb-4">
-                Cole os dados brutos da Hotmart abaixo ou clique no botão <strong class="text-indigo-300">"Listar Todos"</strong> para carregar a Lista 1 e Lista 2 sem precisar digitar comandos.
-            </p>
-
-            <textarea 
-                id="lista3Input" 
-                placeholder="Cole os dados brutos da Hotmart aqui..." 
-                class="w-full glass-input rounded-2xl p-4 text-xs font-mono text-slate-200 h-40 focus:outline-none mb-4"
-            ></textarea>
-
-            <div class="flex items-center flex-wrap gap-3 mb-4">
-                <button 
-                    onclick="executarProcessamentoCoprodutores()" 
-                    class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-2 transition shadow-lg active:scale-95"
-                >
-                    <i data-lucide="cpu" class="w-4 h-4"></i>
-                    Processar Validação de Coprodutores
-                </button>
-
-                <button 
-                    onclick="listarTodosCoprodutores()" 
-                    class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 transition shadow-lg active:scale-95"
-                >
-                    <i data-lucide="list-checks" class="w-4 h-4"></i>
-                    Listar Todos os Coprodutores (Lista 1 & 2)
-                </button>
-
-                <button 
-                    onclick="toggleCoprodutoresView()" 
-                    class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold ml-auto"
-                >
-                    Voltar ao Catálogo de Produtos
-                </button>
-            </div>
-
-            <div id="resultadoCoprodutoresContainer" class="mt-6"></div>
-        </div>
-    </main>
-
-    <!-- Notificação Toast -->
     <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 ease-out pointer-events-none">
         <div class="glass-card px-4 py-3 rounded-xl border border-slate-700/50 shadow-2xl flex items-center gap-3 text-xs font-semibold text-white">
             <div id="toastIconContainer" class="p-1 rounded-lg bg-orange-500/20 text-orange-400">
@@ -489,12 +434,12 @@
         </div>
     </div>
 
-    <!-- Rodapé -->
+    <!-- Footer -->
     <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-800/50">
-        Validador Pro &copy; 2026 &bull; Hotmart, Greenn & TMB Catalog & Coproducer Management
+        Validador Pro &copy; 2026 &bull; Hotmart, Greenn & TMB Catalog Management
     </footer>
 
-    <!-- Firebase SDK & Módulo de Armazenamento -->
+    <!-- Firebase SDK Imports & Storage Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -575,28 +520,7 @@
     </script>
 
     <script>
-        // Datasets Internos de Coprodutores
-        const LISTA_1 = [
-            {"nome": "VANDER FABIO SILVEIRA", "email": "vfabios@hotmail.com", "comissao": "1%"},
-            {"nome": "EDNA MUNIZ DE CASTRO LTDA", "email": "professor.instructiva@gmail.com", "comissao": "5%"},
-            {"nome": "ANDERSON GARCIA NEGOCIOS IMOBILIARIOS LTDA", "email": "mangacafegostobom@hotmail.com", "comissao": "8%"},
-            {"nome": "51.151.732 JOICE MIRIAN ALVES SANT ANA", "email": "joice_santana2026@hotmail.com", "comissao": "3%"},
-            {"nome": "Bruno Mori", "email": "brunomori10@hotmail.com", "comissao": "1,50%"},
-            {"nome": "65.416.884 SILVANA PINTO DE CASTRO DA SILVA", "email": "silvanacastrodasilva81@gmail.com", "comissao": "1%"},
-            {"nome": "50.848.194 JULIANA QUEIROZ DA SILVA", "email": "juqueiroz.contato@gmail.com", "comissao": "1,50%"}
-        ];
-
-        const LISTA_2 = [
-            {"nome": "WANDERLEY LISBOA", "email": "wanderleiinvestimento83@gmail.com", "comissao": "3%"},
-            {"nome": "IBBM REPRESENTACOES LTDA", "email": "ailtoninvestimento@proton.me", "comissao": "1,50%"},
-            {"nome": "TAINÁ KAMEOKA", "email": "tainakameokainvestimento@gmail.com", "comissao": "1,50%"},
-            {"nome": "GILBERTO NASCIMENTO", "email": "gilbertoinvestimento068@gmail.com", "comissao": "1,50%"},
-            {"nome": "Matheus Brandão", "email": "investimentomatheus7@gmail.com", "comissao": "1,50%"},
-            {"nome": "Yahonan Priori", "email": "yahonaninvestimento1@gmail.com", "comissao": "1,50%"},
-            {"nome": "Thalia Lima", "email": "thaliainvestimento3@gmail.com", "comissao": "3%"}
-        ];
-
-        // Dataset Hotmart (104 Produtos Ativos com Apostila ID 8763909 atualizada como [NOVO])
+        // Dataset Hotmart (104 Produtos Ativos - Apostila com ID 8763909 atualizada como [NOVO])
         const hotmartProducts = [
             { num: 1, id: "8433965", name: "20 Dicas de Fontes Chaveadas", status: "Vendas ativas" },
             { num: 2, id: "8426345", name: "Acelerador de Reparos de Equipamentos com Tecnologias Inverter", status: "Vendas ativas" },
@@ -869,8 +793,6 @@
         let currentPlatform = 'hotmart'; 
         let currentIndex = 0;
         let hideValidated = false;
-        const DATA_ATUAL_HOJE = new Date(2026, 8, 9);
-        const DATA_CORTE = new Date(2026, 8, 1);
         
         let coprodutores = [{ id: 'joice', name: 'Joice' }];
         let activeCoprodutorId = 'joice';
@@ -889,15 +811,22 @@
                 const saved = localStorage.getItem('validador_coprodutores_list');
                 if (saved) {
                     const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed) && parsed.length > 0) coprodutores = parsed;
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        coprodutores = parsed;
+                    }
                 }
-            } catch (e) { console.warn("Erro ao carregar lista de coprodutores:", e); }
+            } catch (e) {
+                console.warn("Erro ao carregar lista de coprodutores:", e);
+            }
             renderCoprodutorSelect();
         }
 
         function saveCoprodutoresList() {
-            try { localStorage.setItem('validador_coprodutores_list', JSON.stringify(coprodutores)); } 
-            catch (e) { console.warn("Erro ao salvar lista de coprodutores:", e); }
+            try {
+                localStorage.setItem('validador_coprodutores_list', JSON.stringify(coprodutores));
+            } catch (e) {
+                console.warn("Erro ao salvar lista de coprodutores:", e);
+            }
         }
 
         function renderCoprodutorSelect() {
@@ -915,7 +844,11 @@
 
             const deleteBtn = document.getElementById('deleteCoprodutorBtn');
             if (deleteBtn) {
-                deleteBtn.style.display = activeCoprodutorId === 'joice' ? 'none' : 'inline-flex';
+                if (activeCoprodutorId === 'joice') {
+                    deleteBtn.style.display = 'none';
+                } else {
+                    deleteBtn.style.display = 'inline-flex';
+                }
             }
         }
 
@@ -935,7 +868,8 @@
             }
 
             renderCoprodutorSelect();
-            showToast(`Perfil alterado para: ${getActiveCoprodutorName()}`, "user-check", "purple");
+            const currentName = getActiveCoprodutorName();
+            showToast(`Perfil alterado para: ${currentName}`, "user-check", "purple");
         }
 
         function getActiveCoprodutorName() {
@@ -1004,16 +938,25 @@
                 }
 
                 showToast(`Coprodutor "${activeName}" excluído com sucesso.`, "trash-2", "rose");
+            } else if (confirmMsg !== null) {
+                showToast("Nome incorreto. A exclusão foi cancelada.", "x-circle", "amber");
             }
         }
 
         function saveValidationState() {
+            const hotmartArr = Array.from(validatedHotmart);
+            const greennArr = Array.from(validatedGreenn);
+            const tmbArr = Array.from(validatedTmb);
+
             const suffix = activeCoprodutorId === 'joice' ? '' : `_${activeCoprodutorId}`;
+
             try {
-                localStorage.setItem(`validador_hotmart${suffix}`, JSON.stringify(Array.from(validatedHotmart)));
-                localStorage.setItem(`validador_greenn${suffix}`, JSON.stringify(Array.from(validatedGreenn)));
-                localStorage.setItem(`validador_tmb${suffix}`, JSON.stringify(Array.from(validatedTmb)));
-            } catch (e) { console.warn('Erro ao salvar no navegador:', e); }
+                localStorage.setItem(`validador_hotmart${suffix}`, JSON.stringify(hotmartArr));
+                localStorage.setItem(`validador_greenn${suffix}`, JSON.stringify(greennArr));
+                localStorage.setItem(`validador_tmb${suffix}`, JSON.stringify(tmbArr));
+            } catch (e) {
+                console.warn('Erro ao salvar no navegador:', e);
+            }
 
             if (typeof window.saveValidationToFirestore === 'function') {
                 window.saveValidationToFirestore();
@@ -1028,35 +971,55 @@
 
             try {
                 const h = localStorage.getItem(`validador_hotmart${suffix}`);
-                if (h) JSON.parse(h).forEach(num => validatedHotmart.add(num));
+                if (h) {
+                    const parsed = JSON.parse(h);
+                    if (Array.isArray(parsed)) parsed.forEach(num => validatedHotmart.add(num));
+                }
                 const g = localStorage.getItem(`validador_greenn${suffix}`);
-                if (g) JSON.parse(g).forEach(num => validatedGreenn.add(num));
+                if (g) {
+                    const parsed = JSON.parse(g);
+                    if (Array.isArray(parsed)) parsed.forEach(num => validatedGreenn.add(num));
+                }
                 const t = localStorage.getItem(`validador_tmb${suffix}`);
-                if (t) JSON.parse(t).forEach(num => validatedTmb.add(num));
-            } catch (e) { console.warn('Erro ao carregar do navegador:', e); }
+                if (t) {
+                    const parsed = JSON.parse(t);
+                    if (Array.isArray(parsed)) parsed.forEach(num => validatedTmb.add(num));
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar do navegador:', e);
+            }
         }
         window.loadValidationStateFromLocalStorage = loadValidationStateFromLocalStorage;
 
         function exportToExcel() {
             if (typeof XLSX === 'undefined') {
-                showToast("Biblioteca Excel a carregar... Tente em segundos.", "alert-circle", "rose");
+                showToast("Biblioteca Excel carregando... Tente novamente em segundos.", "alert-circle", "rose");
                 return;
             }
 
+            const coprodutorName = getActiveCoprodutorName();
             const wb = XLSX.utils.book_new();
+
             const createSheetData = (products, validatedSet) => {
                 const rows = [["Número", "Validado"]];
-                products.forEach(p => rows.push([p.num, validatedSet.has(p.num) ? "Sim" : "Não"]));
+                products.forEach(p => {
+                    rows.push([p.num, validatedSet.has(p.num) ? "Sim" : "Não"]);
+                });
                 return XLSX.utils.aoa_to_sheet(rows);
             };
 
-            XLSX.utils.book_append_sheet(wb, createSheetData(hotmartProducts, validatedHotmart), "Hotmart");
-            XLSX.utils.book_append_sheet(wb, createSheetData(greennProducts, validatedGreenn), "Greenn");
-            XLSX.utils.book_append_sheet(wb, createSheetData(tmbProducts, validatedTmb), "TMB");
+            const sheetHotmart = createSheetData(hotmartProducts, validatedHotmart);
+            const sheetGreenn = createSheetData(greennProducts, validatedGreenn);
+            const sheetTmb = createSheetData(tmbProducts, validatedTmb);
+
+            XLSX.utils.book_append_sheet(wb, sheetHotmart, "Hotmart");
+            XLSX.utils.book_append_sheet(wb, sheetGreenn, "Greenn");
+            XLSX.utils.book_append_sheet(wb, sheetTmb, "TMB");
 
             const dateStr = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(wb, `backup_validacoes_${activeCoprodutorId}_${dateStr}.xlsx`);
-            showToast(`Backup de ${getActiveCoprodutorName()} descarregado em Excel!`, "file-spreadsheet", "emerald");
+            const fileName = `backup_validacoes_${activeCoprodutorId}_${dateStr}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            showToast(`Backup de ${coprodutorName} baixado em Excel!`, "file-spreadsheet", "emerald");
         }
 
         function triggerImportExcel() {
@@ -1073,35 +1036,63 @@
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
+
                     let importedCount = 0;
 
-                    const processSheet = (sheetName, validatedSet) => {
-                        if (workbook.Sheets[sheetName]) {
-                            validatedSet.clear();
-                            XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]).forEach(r => {
-                                const num = Number(r["Número"]);
-                                const val = String(r["Validado"]).trim().toLowerCase();
-                                if (num && (val === "sim" || val === "true" || val === "1")) {
-                                    validatedSet.add(num);
-                                    importedCount++;
-                                }
-                            });
-                        }
-                    };
+                    if (workbook.Sheets["Hotmart"]) {
+                        validatedHotmart.clear();
+                        const rows = XLSX.utils.sheet_to_json(workbook.Sheets["Hotmart"]);
+                        rows.forEach(r => {
+                            const num = Number(r["Número"]);
+                            const val = String(r["Validado"]).trim().toLowerCase();
+                            if (num && (val === "sim" || val === "true" || val === "1")) {
+                                validatedHotmart.add(num);
+                                importedCount++;
+                            }
+                        });
+                    }
 
-                    processSheet("Hotmart", validatedHotmart);
-                    processSheet("Greenn", validatedGreenn);
-                    processSheet("TMB", validatedTmb);
+                    if (workbook.Sheets["Greenn"]) {
+                        validatedGreenn.clear();
+                        const rows = XLSX.utils.sheet_to_json(workbook.Sheets["Greenn"]);
+                        rows.forEach(r => {
+                            const num = Number(r["Número"]);
+                            const val = String(r["Validado"]).trim().toLowerCase();
+                            if (num && (val === "sim" || val === "true" || val === "1")) {
+                                validatedGreenn.add(num);
+                                importedCount++;
+                            }
+                        });
+                    }
+
+                    if (workbook.Sheets["TMB"]) {
+                        validatedTmb.clear();
+                        const rows = XLSX.utils.sheet_to_json(workbook.Sheets["TMB"]);
+                        rows.forEach(r => {
+                            const num = Number(r["Número"]);
+                            const val = String(r["Validado"]).trim().toLowerCase();
+                            if (num && (val === "sim" || val === "true" || val === "1")) {
+                                validatedTmb.add(num);
+                                importedCount++;
+                            }
+                        });
+                    }
 
                     saveValidationState();
                     updateProgressStats();
                     loadProduct(currentIndex);
 
-                    showToast(`Backup de ${getActiveCoprodutorName()} restaurado! (${importedCount} itens)`, "check-circle", "emerald");
+                    const currentName = getActiveCoprodutorName();
+                    showToast(`Backup de ${currentName} restaurado! (${importedCount} itens validados)`, "check-circle", "emerald");
+
                 } catch (err) {
-                    showToast("Erro ao ler ficheiro Excel.", "alert-circle", "rose");
-                } finally { event.target.value = ''; }
+                    console.error("Erro na importação:", err);
+                    showToast("Erro ao ler arquivo Excel. Verifique a estrutura.", "alert-circle", "rose");
+                } finally {
+                    event.target.value = '';
+                }
             };
+
             reader.readAsArrayBuffer(file);
         }
 
@@ -1133,19 +1124,35 @@
             if (dataset.length > 0) {
                 loadProduct(0);
             } else {
-                showToast("Todos os itens foram validados!", "check-circle", "emerald");
+                showToast("Todos os itens desta plataforma foram validados!", "check-circle", "emerald");
+            }
+
+            if (hideValidated) {
+                showToast("Modo 'Ocultar Validados' Ativado", "filter", "emerald");
+            } else {
+                showToast("Exibindo todos os itens", "layers", "orange");
             }
         }
 
         function handleSelectAllClick() {
-            selectAllClicks++;
+            const btn = document.getElementById('selectAllBtn');
             const btnText = document.getElementById('selectAllBtnText');
+
+            selectAllClicks++;
 
             if (selectAllClicks === 1) {
                 if (btnText) btnText.textContent = "Clique +2x";
+                if (btn) {
+                    btn.classList.remove('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/30');
+                    btn.classList.add('bg-amber-500/20', 'text-amber-300', 'border-amber-500/50');
+                }
                 selectAllTimer = setTimeout(resetSelectAllBtn, 3000);
             } else if (selectAllClicks === 2) {
                 if (btnText) btnText.textContent = "Clique +1x!";
+                if (btn) {
+                    btn.classList.remove('bg-amber-500/20', 'text-amber-300', 'border-amber-500/50');
+                    btn.classList.add('bg-emerald-500', 'text-white', 'border-emerald-400', 'animate-bounce');
+                }
             } else if (selectAllClicks >= 3) {
                 clearTimeout(selectAllTimer);
                 resetSelectAllBtn();
@@ -1155,8 +1162,12 @@
 
         function resetSelectAllBtn() {
             selectAllClicks = 0;
+            const btn = document.getElementById('selectAllBtn');
             const btnText = document.getElementById('selectAllBtnText');
             if (btnText) btnText.textContent = "Marcar Todos";
+            if (btn) {
+                btn.className = "px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 min-w-[120px] justify-center";
+            }
         }
 
         function executeSelectAll() {
@@ -1166,19 +1177,37 @@
             
             saveValidationState();
             updateProgressStats();
-            if (hideValidated) { currentIndex = 0; loadProduct(0); }
-            showToast(`Todos os ${fullDataset.length} produtos marcados!`, "check-circle", "emerald");
+
+            if (hideValidated) {
+                currentIndex = 0;
+                loadProduct(0);
+            } else {
+                const checkbox = document.getElementById('validationCheckbox');
+                if (checkbox) checkbox.checked = true;
+            }
+
+            showToast(`Todos os ${fullDataset.length} produtos de ${currentPlatform.toUpperCase()} marcados!`, "check-circle", "emerald");
         }
 
         function handleUnselectAllClick() {
-            unselectAllClicks++;
+            const btn = document.getElementById('unselectAllBtn');
             const btnText = document.getElementById('unselectAllBtnText');
+
+            unselectAllClicks++;
 
             if (unselectAllClicks === 1) {
                 if (btnText) btnText.textContent = "Clique +2x";
+                if (btn) {
+                    btn.classList.remove('bg-rose-500/10', 'text-rose-400', 'border-rose-500/30');
+                    btn.classList.add('bg-amber-500/20', 'text-amber-300', 'border-amber-500/50');
+                }
                 unselectAllTimer = setTimeout(resetUnselectAllBtn, 3000);
             } else if (unselectAllClicks === 2) {
                 if (btnText) btnText.textContent = "Clique +1x!";
+                if (btn) {
+                    btn.classList.remove('bg-amber-500/20', 'text-amber-300', 'border-amber-500/50');
+                    btn.classList.add('bg-rose-600', 'text-white', 'border-rose-400', 'animate-bounce');
+                }
             } else if (unselectAllClicks >= 3) {
                 clearTimeout(unselectAllTimer);
                 resetUnselectAllBtn();
@@ -1188,17 +1217,28 @@
 
         function resetUnselectAllBtn() {
             unselectAllClicks = 0;
+            const btn = document.getElementById('unselectAllBtn');
             const btnText = document.getElementById('unselectAllBtnText');
             if (btnText) btnText.textContent = "Desmarcar Todos";
+            if (btn) {
+                btn.className = "px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 min-w-[130px] justify-center";
+            }
         }
 
         function executeUnselectAll() {
             const validatedSet = getActiveValidatedSet();
             validatedSet.clear();
+            const checkbox = document.getElementById('validationCheckbox');
+            if (checkbox) checkbox.checked = false;
             saveValidationState();
             updateProgressStats();
-            if (hideValidated) { currentIndex = 0; loadProduct(0); }
-            showToast(`Todos os produtos desmarcados!`, "rotate-ccw", "rose");
+            
+            if (hideValidated) {
+                currentIndex = 0;
+                loadProduct(0);
+            }
+
+            showToast(`Todos os produtos de ${currentPlatform.toUpperCase()} desmarcados!`, "rotate-ccw", "rose");
         }
 
         function switchPlatform(platform) {
@@ -1206,68 +1246,92 @@
             currentPlatform = platform;
             currentIndex = 0;
 
-            document.getElementById('catalogViewSection').classList.remove('hidden');
-            document.getElementById('coprodutoresSection').classList.add('hidden');
-            document.getElementById('catalogHeaderControls').classList.remove('hidden');
-            document.getElementById('catalogGlobalActions').classList.remove('hidden');
+            resetSelectAllBtn();
+            resetUnselectAllBtn();
 
             const body = document.getElementById('appBody');
+            const tabHotmart = document.getElementById('tabHotmart');
+            const tabGreenn = document.getElementById('tabGreenn');
+            const tabTmb = document.getElementById('tabTmb');
             const platformBadge = document.getElementById('platformBadge');
+            const logoIconBg = document.getElementById('logoIconBg');
+            const logoSubText = document.getElementById('logoSubText');
+            const numBadge = document.getElementById('numBadge');
+            const copyExtraBtn = document.getElementById('copyExtraBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const topProgressBar = document.getElementById('topProgressBar');
+
+            tabHotmart.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200';
+            tabGreenn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200';
+            tabTmb.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200';
 
             body.classList.remove('theme-hotmart', 'theme-greenn', 'theme-tmb');
 
             if (platform === 'hotmart') {
                 body.classList.add('theme-hotmart');
+                tabHotmart.className = 'tab-btn active px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200';
                 if (platformBadge) {
                     platformBadge.textContent = 'Hotmart';
                     platformBadge.className = 'px-2.5 py-1 rounded-xl text-xs font-bold uppercase tracking-wider bg-orange-500/20 text-orange-400 border border-orange-500/30';
                 }
+                if (logoIconBg) logoIconBg.className = 'w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shadow-lg transition-all duration-300';
+                if (logoSubText) logoSubText.className = 'text-orange-400 transition-colors duration-300';
+                if (numBadge) numBadge.className = 'px-3 py-1 rounded-xl bg-orange-500/20 border border-orange-500/30 text-orange-300 font-extrabold text-sm tracking-wide transition-all duration-300';
+                if (copyExtraBtn) copyExtraBtn.className = 'ml-1 px-2 py-0.5 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 border border-orange-500/30 text-[11px] font-semibold flex items-center gap-1 transition active:scale-95';
+                if (copyBtn) copyBtn.className = 'absolute right-3 bottom-3 glow-button bg-orange-600 hover:bg-orange-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 transition shadow-lg active:scale-95';
+                if (nextBtn) nextBtn.className = 'px-5 py-3.5 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition shadow-lg active:scale-95 group';
+                if (topProgressBar) topProgressBar.className = 'h-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-400 transition-all duration-300 w-0';
+
             } else if (platform === 'greenn') {
                 body.classList.add('theme-greenn');
+                tabGreenn.className = 'tab-btn active px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200';
                 if (platformBadge) {
                     platformBadge.textContent = 'Greenn';
                     platformBadge.className = 'px-2.5 py-1 rounded-xl text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
                 }
+                if (logoIconBg) logoIconBg.className = 'w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg transition-all duration-300';
+                if (logoSubText) logoSubText.className = 'text-emerald-400 transition-colors duration-300';
+                if (numBadge) numBadge.className = 'px-3 py-1 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-extrabold text-sm tracking-wide transition-all duration-300';
+                if (copyExtraBtn) copyExtraBtn.className = 'ml-1 px-2 py-0.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold flex items-center gap-1 transition active:scale-95';
+                if (copyBtn) copyBtn.className = 'absolute right-3 bottom-3 glow-button bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 transition shadow-lg active:scale-95';
+                if (nextBtn) nextBtn.className = 'px-5 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition shadow-lg active:scale-95 group';
+                if (topProgressBar) topProgressBar.className = 'h-full bg-gradient-to-r from-emerald-500 via-teal-500 to-green-400 transition-all duration-300 w-0';
+
             } else {
                 body.classList.add('theme-tmb');
+                tabTmb.className = 'tab-btn active px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-transparent text-slate-400 hover:text-slate-200';
                 if (platformBadge) {
                     platformBadge.textContent = 'TMB';
                     platformBadge.className = 'px-2.5 py-1 rounded-xl text-xs font-bold uppercase tracking-wider bg-purple-500/20 text-purple-400 border border-purple-500/30';
                 }
+                if (logoIconBg) logoIconBg.className = 'w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-500 to-violet-500 flex items-center justify-center shadow-lg transition-all duration-300';
+                if (logoSubText) logoSubText.className = 'text-purple-400 transition-colors duration-300';
+                if (numBadge) numBadge.className = 'px-3 py-1 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-300 font-extrabold text-sm tracking-wide transition-all duration-300';
+                if (copyExtraBtn) copyExtraBtn.className = 'ml-1 px-2 py-0.5 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 text-[11px] font-semibold flex items-center gap-1 transition active:scale-95';
+                if (copyBtn) copyBtn.className = 'absolute right-3 bottom-3 glow-button bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 transition shadow-lg active:scale-95';
+                if (nextBtn) nextBtn.className = 'px-5 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition shadow-lg active:scale-95 group';
+                if (topProgressBar) topProgressBar.className = 'h-full bg-gradient-to-r from-purple-500 via-violet-500 to-fuchsia-400 transition-all duration-300 w-0';
             }
 
             clearSearch();
             loadProduct(0);
             updateProgressStats();
-        }
-
-        function toggleCoprodutoresView() {
-            const catSec = document.getElementById('catalogViewSection');
-            const copSec = document.getElementById('coprodutoresSection');
-            const catCtrl = document.getElementById('catalogHeaderControls');
-            const catAct = document.getElementById('catalogGlobalActions');
-
-            if (copSec.classList.contains('hidden')) {
-                catSec.classList.add('hidden');
-                copSec.classList.remove('hidden');
-                catCtrl.classList.add('hidden');
-                catAct.classList.add('hidden');
-            } else {
-                copSec.classList.add('hidden');
-                catSec.classList.remove('hidden');
-                catCtrl.classList.remove('hidden');
-                catAct.classList.remove('hidden');
-            }
+            showToast(`Plataforma alterada para ${platform.toUpperCase()}`, "layers", platform === 'hotmart' ? 'orange' : platform === 'greenn' ? 'emerald' : 'purple');
         }
 
         function loadProduct(index) {
             const dataset = getActiveDataset();
             
             if (dataset.length === 0) {
-                document.getElementById('productNameInput').value = "Nenhum item pendente nesta plataforma.";
-                document.getElementById('displayNum').textContent = "-";
-                document.getElementById('validationCheckbox').checked = false;
-                document.getElementById('newBadge').classList.add('hidden');
+                const nameEl = document.getElementById('productNameInput');
+                if (nameEl) nameEl.value = "Nenhum item pendente para validação nesta plataforma.";
+                const numEl = document.getElementById('displayNum');
+                if (numEl) numEl.textContent = "-";
+                const checkbox = document.getElementById('validationCheckbox');
+                if (checkbox) checkbox.checked = false;
+                const newBadge = document.getElementById('newBadge');
+                if (newBadge) newBadge.classList.add('hidden');
                 return;
             }
 
@@ -1278,17 +1342,25 @@
             const item = dataset[currentIndex];
             const validatedSet = getActiveValidatedSet();
 
-            document.getElementById('displayNum').textContent = item.num;
-            document.getElementById('productNameInput').value = item.name;
-
-            const newBadge = document.getElementById('newBadge');
-            if (newBadge) {
-                if (currentPlatform === 'hotmart' && item.isNew) newBadge.classList.remove('hidden');
-                else newBadge.classList.add('hidden');
-            }
-
+            const numEl = document.getElementById('displayNum');
+            const nameEl = document.getElementById('productNameInput');
             const extraLabel = document.getElementById('extraInfoLabel');
             const extraValue = document.getElementById('displayExtraValue');
+            const statusEl = document.getElementById('displayStatus');
+            const newBadge = document.getElementById('newBadge');
+
+            if (numEl) numEl.textContent = item.num;
+            if (nameEl) nameEl.value = item.name;
+
+            // Exibe o selo [NOVO] se o item possuir a flag isNew
+            if (newBadge) {
+                if (currentPlatform === 'hotmart' && item.isNew) {
+                    newBadge.classList.remove('hidden');
+                } else {
+                    newBadge.classList.add('hidden');
+                }
+            }
+
             if (currentPlatform === 'hotmart') {
                 if (extraLabel) extraLabel.textContent = 'ID:';
                 if (extraValue) extraValue.textContent = item.id;
@@ -1297,37 +1369,91 @@
                 if (extraValue) extraValue.textContent = item.valor;
             }
 
+            if (statusEl) {
+                const statusText = item.status || "Ativos";
+                const isAtivo = statusText.toLowerCase().includes('ativo');
+                if (isAtivo) {
+                    statusEl.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                    statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span>${statusText}`;
+                } else {
+                    statusEl.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                    statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span>${statusText}`;
+                }
+            }
+
             const checkbox = document.getElementById('validationCheckbox');
             if (checkbox) checkbox.checked = validatedSet.has(item.num);
 
             const nextBadge = document.getElementById('nextItemBadge');
             if (nextBadge) {
-                nextBadge.textContent = (currentIndex + 1 < dataset.length) ? `#${dataset[currentIndex + 1].num}` : 'Fim';
+                if (currentIndex + 1 < dataset.length) {
+                    nextBadge.textContent = `#${dataset[currentIndex + 1].num}`;
+                } else {
+                    nextBadge.textContent = 'Fim';
+                }
             }
+
+            resetCopyButton();
         }
 
         function copyToClipboard() {
             const inputEl = document.getElementById('productNameInput');
+            const copyBtnText = document.getElementById('copyBtnText');
+            const copyBtn = document.getElementById('copyBtn');
+
             if (!inputEl) return;
+
             inputEl.select();
+            
             try {
                 document.execCommand('copy');
-                showToast("Nome copiado!", "check-circle", "emerald");
-            } catch (err) { showToast("Erro ao copiar", "alert-circle", "rose"); }
+                if (copyBtnText) copyBtnText.textContent = 'Copiado!';
+                if (copyBtn) {
+                    copyBtn.classList.remove('bg-orange-600', 'bg-emerald-600', 'bg-purple-600');
+                    copyBtn.classList.add('bg-emerald-600');
+                }
+                setTimeout(resetCopyButton, 2000);
+            } catch (err) {
+                if (copyBtnText) copyBtnText.textContent = 'Erro ao copiar';
+            }
+        }
+
+        function resetCopyButton() {
+            const copyBtnText = document.getElementById('copyBtnText');
+            const copyBtn = document.getElementById('copyBtn');
+            if (copyBtnText) copyBtnText.textContent = 'Copiar Nome';
+            if (copyBtn) {
+                const bgClass = currentPlatform === 'hotmart' ? 'bg-orange-600 hover:bg-orange-500' : currentPlatform === 'greenn' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-purple-600 hover:bg-purple-500';
+                copyBtn.className = `absolute right-3 bottom-3 glow-button ${bgClass} text-white font-semibold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 transition shadow-lg active:scale-95`;
+            }
+            const copyExtraBtnText = document.getElementById('copyExtraBtnText');
+            if (copyExtraBtnText) copyExtraBtnText.textContent = 'Copiar';
         }
 
         function copyExtraToClipboard() {
             const extraVal = document.getElementById('displayExtraValue')?.textContent || '';
+            const labelText = document.getElementById('extraInfoLabel')?.textContent || 'Código';
+            const copyExtraBtnText = document.getElementById('copyExtraBtnText');
+
             if (!extraVal) return;
+
             const tempInput = document.createElement('textarea');
             tempInput.value = extraVal;
             document.body.appendChild(tempInput);
             tempInput.select();
+
             try {
                 document.execCommand('copy');
-                showToast(`Código/Valor (${extraVal}) copiado!`, "check-circle", "emerald");
-            } catch (err) { showToast('Erro ao copiar', 'alert-circle', 'rose'); }
-            finally { document.body.removeChild(tempInput); }
+                if (copyExtraBtnText) copyExtraBtnText.textContent = 'Copiado!';
+                showToast(`${labelText} (${extraVal}) copiado com sucesso!`, "check-circle", "emerald");
+                setTimeout(() => {
+                    if (copyExtraBtnText) copyExtraBtnText.textContent = 'Copiar';
+                }, 2000);
+            } catch (err) {
+                showToast('Erro ao copiar código', 'alert-circle', 'rose');
+            } finally {
+                document.body.removeChild(tempInput);
+            }
         }
 
         function toggleValidationStatus() {
@@ -1338,12 +1464,18 @@
             const validatedSet = getActiveValidatedSet();
             const checkbox = document.getElementById('validationCheckbox');
             
-            if (checkbox && checkbox.checked) validatedSet.add(currentNum);
-            else validatedSet.delete(currentNum);
+            if (checkbox && checkbox.checked) {
+                validatedSet.add(currentNum);
+            } else {
+                validatedSet.delete(currentNum);
+            }
 
             saveValidationState();
             updateProgressStats();
-            if (hideValidated) loadProduct(currentIndex);
+
+            if (hideValidated) {
+                loadProduct(currentIndex);
+            }
         }
 
         function showToast(message, iconName = "info", color = "orange") {
@@ -1353,19 +1485,29 @@
             const iconContainer = document.getElementById('toastIconContainer');
 
             if (!toast || !toastMsg) return;
+
             toastMsg.textContent = message;
             if (toastIcon) toastIcon.setAttribute('data-lucide', iconName);
             
             if (iconContainer) {
-                if (color === "emerald") iconContainer.className = "p-1 rounded-lg bg-emerald-500/20 text-emerald-400";
-                else if (color === "rose") iconContainer.className = "p-1 rounded-lg bg-rose-500/20 text-rose-400";
-                else if (color === "purple") iconContainer.className = "p-1 rounded-lg bg-purple-500/20 text-purple-400";
-                else iconContainer.className = "p-1 rounded-lg bg-orange-500/20 text-orange-400";
+                if (color === "emerald") {
+                    iconContainer.className = "p-1 rounded-lg bg-emerald-500/20 text-emerald-400";
+                } else if (color === "rose") {
+                    iconContainer.className = "p-1 rounded-lg bg-rose-500/20 text-rose-400";
+                } else if (color === "purple") {
+                    iconContainer.className = "p-1 rounded-lg bg-purple-500/20 text-purple-400";
+                } else {
+                    iconContainer.className = "p-1 rounded-lg bg-orange-500/20 text-orange-400";
+                }
             }
 
             if (window.lucide) window.lucide.createIcons();
+
             toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none'), 2500);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 2500);
         }
 
         function updateProgressStats() {
@@ -1375,24 +1517,36 @@
             const count = validatedSet.size;
             const percentage = Math.round((count / total) * 100);
 
-            document.getElementById('validatedCount').textContent = count;
-            document.getElementById('totalPlatformCount').textContent = total;
-            document.getElementById('percentageText').textContent = `${percentage}%`;
-            document.getElementById('topProgressBar').style.width = `${percentage}%`;
+            const countEl = document.getElementById('validatedCount');
+            const totalEl = document.getElementById('totalPlatformCount');
+            const pctEl = document.getElementById('percentageText');
+            const barEl = document.getElementById('topProgressBar');
+
+            if (countEl) countEl.textContent = count;
+            if (totalEl) totalEl.textContent = total;
+            if (pctEl) pctEl.textContent = `${percentage}%`;
+            if (barEl) barEl.style.width = `${percentage}%`;
         }
 
         function nextItem() {
             const dataset = getActiveDataset();
-            if (currentIndex < dataset.length - 1) loadProduct(currentIndex + 1);
+            if (currentIndex < dataset.length - 1) {
+                loadProduct(currentIndex + 1);
+            }
         }
 
         function previousItem() {
-            if (currentIndex > 0) loadProduct(currentIndex - 1);
+            if (currentIndex > 0) {
+                loadProduct(currentIndex - 1);
+            }
         }
 
         function removeAcentos(texto) {
             if (!texto) return '';
-            return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            return texto
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase();
         }
 
         function onSearchInput() {
@@ -1415,7 +1569,7 @@
 
             const matches = dataset.filter(item => {
                 const itemNumStr = item.num.toString();
-                const matchNum = itemNumStr === query || `${itemNumStr}º` === query;
+                const matchNum = itemNumStr === query || `${itemNumStr}º` === query || `${itemNumStr}` === query;
                 const matchName = removeAcentos(item.name).includes(query);
                 const extraText = currentPlatform === 'hotmart' ? item.id : item.valor;
                 const matchExtra = removeAcentos(extraText).includes(query);
@@ -1458,7 +1612,7 @@
                     resultsContainer.classList.remove('hidden');
                     if (window.lucide) window.lucide.createIcons();
                 } else {
-                    resultsContainer.innerHTML = `<div class="p-4 text-xs text-slate-400 text-center">Nenhum produto encontrado.</div>`;
+                    resultsContainer.innerHTML = `<div class="p-4 text-xs text-slate-400 text-center">Nenhum produto encontrado em ${currentPlatform.toUpperCase()}.</div>`;
                     resultsContainer.classList.remove('hidden');
                 }
             }
@@ -1474,239 +1628,36 @@
             if (clearBtn) clearBtn.classList.add('hidden');
         }
 
-        // --- LÓGICA DO PROCESSADOR DE COPRODUTORES ---
-        function normalizarIdentificacao(nome) {
-            if (!nome) return "";
-            let n = nome.toUpperCase();
-            n = n.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); 
-            n = n.replace(/^[\d\.\-\/]+\s+/, ""); 
-            n = n.replace(/([,\.])([^\s])/g, "$1 $2"); 
-            n = n.replace(/\s+/g, " ").trim(); 
-            return n;
-        }
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
 
-        function nomesSaoEquivalentes(n3, nBase) {
-            if (n3 === nBase) return true;
-            const aliases = {
-                "TAINÁ KAMEOKA": ["TAINA CHISAKO KAMEOKA DE MELLO", "TAINA CHISAKO KAMEOKA", "TAINÁ KAMEOKA"],
-                "MATHEUS BRANDÃO": ["MATEUS DA SILVA BRANDAO", "MATEUS BRANDAO", "MATHEUS DA SILVA BRANDAO", "MATHEUS BRANDÃO"],
-                "YAHONAN PRIORI": ["YAHONAN PRIORI LTDA"]
-            };
-            
-            for (let baseKey in aliases) {
-                if (normalizarIdentificacao(baseKey) === normalizarIdentificacao(nBase)) {
-                    if (aliases[baseKey].map(a => normalizarIdentificacao(a)).includes(n3)) return true;
-                }
+            if (e.key === 'ArrowRight') {
+                nextItem();
+            } else if (e.key === 'ArrowLeft') {
+                previousItem();
             }
+        });
 
-            let l3IsPJ = n3.includes(" LTDA") || n3.endsWith("LTDA");
-            let baseIsPJ = nBase.includes(" LTDA") || nBase.endsWith("LTDA");
-            if (l3IsPJ !== baseIsPJ) return false;
-
-            let palavrasBase = nBase.split(" ").filter(p => p.length > 2);
-            let palavrasL3 = n3.split(" ");
-            return palavrasBase.every(p => palavrasL3.includes(p));
-        }
-
-        function parseComissaoNumerica(c) {
-            if (!c) return 0;
-            return parseFloat(c.replace(',', '.').replace('%', '').trim());
-        }
-
-        function parseDataCalendario(dStr) {
-            if(!dStr) return new Date(0);
-            let partes = dStr.trim().split(' ')[0].split('/');
-            if(partes.length === 3) return new Date(partes[2], partes[1]-1, partes[0]);
-            return new Date(0);
-        }
-
-        function verificarComandoListagem(texto) {
-            if (!texto) return false;
-            let t = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            let termos = ["listar coprodutor", "listar coprodutores", "lista coprodutor", "lista coprodutores", "mostrar coprodutor", "mostrar coprodutores"];
-            return termos.some(termo => t.includes(termo));
-        }
-
-        function parseHotmartInput(rawText) {
-            let texto = rawText.trim();
-            if(!texto) return null;
-
-            if (texto.includes('\t')) {
-                let linhas = texto.split('\n');
-                let headers = linhas[0].split('\t').map(h => h.trim().toUpperCase());
-                let idxData = headers.indexOf('DATA');
-                let idxCoprodutor = headers.indexOf('COPRODUTOR');
-                let idxReceita = headers.indexOf('RECEITA');
-                let idxStatus = headers.indexOf('STATUS');
-                let idxDuracao = headers.findIndex(h => h.includes('DURAÇÃO') || h.includes('DURACAO') || h.includes('TERMINO') || h.includes('VALIDADE'));
-
-                if (idxCoprodutor !== -1 && idxData !== -1 && idxReceita !== -1) {
-                    let registros = [];
-                    for(let i = 1; i < linhas.length; i++) {
-                        let cols = linhas[i].split('\t');
-                        if(cols.length > Math.max(idxData, idxCoprodutor, idxReceita)) {
-                            registros.push({
-                                data_obj: parseDataCalendario(cols[idxData]),
-                                coprodutor_original: cols[idxCoprodutor].trim(),
-                                comissao_atual_original: cols[idxReceita].trim(),
-                                status_original: idxStatus !== -1 ? cols[idxStatus].trim() : "Ativo",
-                                data_duracao_obj: idxDuracao !== -1 && cols[idxDuracao] ? parseDataCalendario(cols[idxDuracao]) : null
-                            });
-                        }
-                    }
-                    if(registros.length > 0) return registros;
-                }
+        document.addEventListener('click', (e) => {
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            if (searchInput && searchResults && !searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.add('hidden');
             }
+        });
 
-            let lines = texto.split('\n').map(l => l.trim()).filter(l => l !== '');
-            let registros = [];
-            let currentRecord = [];
-            let dateRegex = /^\d{2}\/\d{2}\/\d{4}/;
+        window.onload = function() {
+            if (window.lucide) window.lucide.createIcons();
+            loadCoprodutoresList();
 
-            for (let i = 0; i < lines.length; i++) {
-                if (dateRegex.test(lines[i])) {
-                    if (currentRecord.length >= 3) registros.push(construirRegistroVertical(currentRecord));
-                    currentRecord = [lines[i]]; 
-                } else if (currentRecord.length > 0) {
-                    currentRecord.push(lines[i]);
-                }
+            if (window.initStorageForCoprodutor) {
+                window.initStorageForCoprodutor(activeCoprodutorId);
+            } else {
+                loadValidationStateFromLocalStorage(activeCoprodutorId);
+                loadProduct(0);
+                updateProgressStats();
             }
-            if (currentRecord.length >= 3) registros.push(construirRegistroVertical(currentRecord));
-
-            return registros.length > 0 ? registros : null;
-        }
-
-        function construirRegistroVertical(recordLines) {
-            let dataObj = parseDataCalendario(recordLines[0]);
-            let coprodutor = recordLines[1] || "";
-            let comissao = recordLines[2] || "";
-            let status = "Ativo";
-            let dataDuracao = null;
-            let dateRegex = /^\d{2}\/\d{2}\/\d{4}/;
-
-            for (let j = 3; j < recordLines.length; j++) {
-                let linha = recordLines[j];
-                if (dateRegex.test(linha)) {
-                    let dParsed = parseDataCalendario(linha);
-                    if (dParsed > dataObj) dataDuracao = dParsed;
-                } else if (linha.toUpperCase().includes("ATIVADO") || linha.toUpperCase().includes("DESATIVADO")) {
-                    status = linha;
-                }
-            }
-
-            return {
-                data_obj: dataObj,
-                coprodutor_original: coprodutor,
-                comissao_atual_original: comissao,
-                status_original: status || recordLines[recordLines.length - 1] || "Ativo",
-                data_duracao_obj: dataDuracao
-            };
-        }
-
-        function listarTodosCoprodutores() {
-            let dadosListagem = [];
-            LISTA_1.forEach(item => dadosListagem.push({ nome: item.nome, email: item.email, comissao_atual: item.comissao, status: "-", acao: "Listagem Lista 1", nova_comissao: "" }));
-            LISTA_2.forEach(item => dadosListagem.push({ nome: item.nome, email: item.email, comissao_atual: item.comissao, status: "-", acao: "Listagem Lista 2", nova_comissao: "" }));
-            renderizarSaidaCoprodutores(dadosListagem, "Listagem Geral - Lista 1 e Lista 2");
-        }
-
-        function executarProcessamentoCoprodutores() {
-            let tsvInput = document.getElementById('lista3Input').value;
-            let container = document.getElementById('resultadoCoprodutoresContainer');
-
-            if (verificarComandoListagem(tsvInput)) {
-                listarTodosCoprodutores();
-                return;
-            }
-
-            let lista3 = parseHotmartInput(tsvInput);
-            if (lista3 === null) {
-                container.innerHTML = "<div class='p-4 rounded-xl bg-rose-500/20 text-rose-300 text-xs font-bold'>Erro: Nenhum coprodutor identificado nos dados colados.</div>";
-                return;
-            }
-
-            let acoesGeradas = [];
-            let processadosEmLista1 = new Set();
-            let processadosEmLista2 = new Set();
-
-            lista3.forEach(item3 => {
-                let chaveNorm = normalizarIdentificacao(item3.coprodutor_original);
-                let coprodL1 = LISTA_1.find(base => nomesSaoEquivalentes(chaveNorm, normalizarIdentificacao(base.nome)));
-                let coprodL2 = LISTA_2.find(base => nomesSaoEquivalentes(chaveNorm, normalizarIdentificacao(base.nome)));
-
-                let acaoFinal = "";
-                let novaComissaoFinal = "";
-                let emailFinal = "";
-
-                let isExpirado = item3.data_duracao_obj && item3.data_duracao_obj < DATA_ATUAL_HOJE;
-
-                if (isExpirado) {
-                    let dataDurFmt = item3.data_duracao_obj.toLocaleDateString('pt-BR');
-                    acaoFinal = `Nenhuma ação (Expirou em ${dataDurFmt})`;
-                    emailFinal = coprodL1 ? coprodL1.email : (coprodL2 ? coprodL2.email : "");
-                } else if (coprodL1) {
-                    emailFinal = coprodL1.email;
-                    let comValL1 = parseComissaoNumerica(coprodL1.comissao);
-                    let comValL3 = parseComissaoNumerica(item3.comissao_atual_original);
-                    if (comValL1 !== comValL3) {
-                        acaoFinal = "Atualizar comissão";
-                        novaComissaoFinal = coprodL1.comissao;
-                    } else { acaoFinal = "Nenhuma ação"; }
-                    processadosEmLista1.add(normalizarIdentificacao(coprodL1.nome));
-                } else if (coprodL2) {
-                    emailFinal = coprodL2.email;
-                    if (item3.data_obj < DATA_CORTE) {
-                        let dataFormatada = item3.data_obj.toLocaleDateString('pt-BR');
-                        acaoFinal = `Desativar usuário (Anterior a ${dataFormatada})`;
-                    } else {
-                        let comValL2 = parseComissaoNumerica(coprodL2.comissao);
-                        let comValL3 = parseComissaoNumerica(item3.comissao_atual_original);
-                        if (comValL2 !== comValL3) {
-                            acaoFinal = "Atualizar comissão";
-                            novaComissaoFinal = coprodL2.comissao;
-                        } else { acaoFinal = "Nenhuma ação"; }
-                        processadosEmLista2.add(normalizarIdentificacao(coprodL2.nome));
-                    }
-                } else {
-                    acaoFinal = "Desativar usuário";
-                }
-
-                acoesGeradas.push({
-                    nome: item3.coprodutor_original,
-                    email: emailFinal,
-                    comissao_atual: item3.comissao_atual_original,
-                    status: item3.status_original || "-",
-                    acao: acaoFinal,
-                    nova_comissao: novaComissaoFinal
-                });
-            });
-
-            renderizarSaidaCoprodutores(acoesGeradas, `Resultado da Validação (${acoesGeradas.length} ações)`);
-        }
-
-        function renderizarSaidaCoprodutores(dados, titulo) {
-            let container = document.getElementById('resultadoCoprodutoresContainer');
-            if(dados.length === 0) {
-                container.innerHTML = "<div class='p-4 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold'>Nenhum resultado encontrado.</div>";
-                return;
-            }
-
-            let html = `
-            <h3 class="text-sm font-bold text-emerald-400 mb-3">${titulo}</h3>
-            <div class="overflow-x-auto rounded-2xl border border-slate-800">
-                <table class="w-full text-xs text-left">
-                    <thead class="bg-slate-900/90 text-slate-400 uppercase font-mono">
-                        <tr>
-                            <th class="p-3">Nome</th>
-                            <th class="p-3">Email</th>
-                            <th class="p-3">Comissão Atual</th>
-                            <th class="p-3">Status</th>
-                            <th class="p-3">Ação Recomendada</th>
-                            <th class="p-3">Nova Comissão</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800/60 bg-slate-950/40">
-            `;
-
-            dados.forEach(r => {
-                let emailHtml = r.email ?
+        };
+    </script>
+</body>
+</html>
